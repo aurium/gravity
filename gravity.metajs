@@ -1,0 +1,574 @@
+function rand(num) { return (Math.random()-0.5) * (num||1) }
+function randColor(mr,vr,mg,vg,mb,vb) {
+  var r1 = Math.round( mr + rand(vr) ),
+      g1 = Math.round( mg + rand(vg) ),
+      b1 = Math.round( mb + rand(vb) ),
+      r2 = Math.round( r1*2.8 ),
+      g2 = Math.round( g1*2.8 ),
+      b2 = Math.round( b1*2.8 ),
+      r3 = Math.round( r1*3.6 ),
+      g3 = Math.round( g1*3.6 ),
+      b3 = Math.round( b1*3.6 );
+      r2 > 255 ? r2=255 : 0;
+      g2 > 255 ? g2=255 : 0;
+      b2 > 255 ? b2=255 : 0;
+      r3 > 255 ? r3=255 : 0;
+      g3 > 255 ? g3=255 : 0;
+      b3 > 255 ? b3=255 : 0;
+  return [ [r1,g1,b1].join(','), [r2,g2,b2].join(','), [r3,g3,b3].join(',') ];
+}
+
+var ctx = c.getContext('2d'),
+    d = document,
+    b = d.body,
+    abs = Math.abs,
+    planets = {
+      sun:{ m:150, c:['255,180,0','255,255,10','255,255,80'], r:60+rand(10) },
+
+      // Orbit 1
+      p1a:  { m:40, c:['0,100,180','0,180,220','50,220,255'],
+              r:20+rand(5), d:300+rand(10), v:.002,  a:rand() },
+      m1a1: { m:20, c:['100,100,100','200,200,200','250,250,250'],
+              r:10+rand(3),  d:50+rand(5),  v:.008,  a:rand(7), p:'p1a' },
+
+      p1b:  { m:40, c:randColor(100,60,80,80,0,120),
+              r:20+rand(5), d:300+rand(10), v:.002,  a:2+rand() },
+
+      p1c:  { m:40, c:randColor(100,60,80,80,0,120),
+              r:20+rand(5), d:300+rand(10), v:.002,  a:4+rand() },
+
+      // Orbit 2
+      p2a:  { m:30, c:randColor(100,60,80,80,0,120),
+              r:15+rand(8), d:430+rand(20), v:.0016, a:1+rand() },
+
+      p2b:  { m:30, c:randColor(100,60,80,80,0,120),
+              r:15+rand(8), d:430+rand(20), v:.0016, a:3+rand() },
+
+      p2c:  { m:30, c:randColor(100,60,80,80,0,120),
+              r:15+rand(8), d:430+rand(20), v:.0016, a:5+rand() },
+
+      // Orbit 3
+      p3a:  { m:50, c:randColor(100,60,80,80,0,120),
+              r:30+rand(8), d:600+rand(20), v:.0013, a:2+rand() },
+      m3a1: { m:20, c:randColor(100,60,80,80,0,120),
+              r:9+rand(3),  d:70+rand(5),   v:.008,  a:rand(7), p:'p3a' },
+      m3a2: { m:20, c:randColor(100,60,80,80,0,120),
+              r:8+rand(3),  d:110+rand(5),  v:.004,  a:rand(), p:'p3a' },
+      m3a3: { m:20, c:randColor(100,60,80,80,0,120),
+              r:8+rand(3),  d:110+rand(5),  v:.004,  a:3+rand(), p:'p3a' },
+
+      p3b:  { m:50, c:randColor(100,60,80,80,0,120),
+              r:30+rand(8), d:600+rand(20), v:.0013, a:4+rand() },
+      m3b1: { m:20, c:randColor(100,60,80,80,0,120),
+              r:9+rand(3),  d:70+rand(5),   v:.008,  a:rand(7), p:'p3b' },
+      m3b2: { m:20, c:randColor(100,60,80,80,0,120),
+              r:8+rand(3),  d:110+rand(5),  v:.004,  a:rand(), p:'p3b' },
+      m3b3: { m:20, c:randColor(100,60,80,80,0,120),
+              r:8+rand(3),  d:110+rand(5),  v:.004,  a:3+rand(), p:'p3b' },
+
+      p3c:  { m:50, c:randColor(100,60,80,80,0,120),
+              r:30+rand(8), d:600+rand(20), v:.0013, a:0+rand() },
+
+      // Orbit 4
+      p4a:  { m:40, c:randColor(100,60,80,80,0,120),
+              r:25+rand(20), d:780+rand(20), v:.001, a:1+rand() },
+
+      p4b:  { m:40, c:randColor(100,60,80,80,0,120),
+              r:25+rand(20), d:780+rand(20), v:.001, a:3+rand() },
+
+      p4c:  { m:40, c:randColor(100,60,80,80,0,120),
+              r:25+rand(20), d:780+rand(20), v:.001, a:5+rand() }
+    },
+    biggerPlanetD=0,
+    boids = [
+      { o:0, x:-300, y:50,  r:2, vx:-1, vy:-0.8 },
+      { o:0, x:-300, y:-50, r:2, vx:-1, vy:0.8 },
+      { o:0, x:200, y:0,   r:2, vx:1, vy:1 },
+      { o:0, x:250, y:-30, r:2, vx:0, vy:0 },
+      { o:1, x:planets.p1a.x+planets.p1a.r+2, y:planets.p1a.y, r:2, vx:-3, vy:4 },
+      { o:1, x:450, y:-30, r:2, vx:0, vy:0 },
+      { o:1, x:62, y:0, r:2, vx:0, vy:0 }
+    ],
+    sun = planets.sun,
+    vCX=vCY = viewCX=viewCY = scrCX=scrCY = w=h = z=zoom = 0.5,
+    ship = {x:-200, y:-200},
+    shipVX = shipVY = 0,
+    shipAlive = true,
+    shipLanded = false,
+    shipJet = shipRotateJet = false,
+    shipRotate = 0, shipRotateV = 0,
+    leftArrowIsPressed = rightArrowIsPressed = false,
+    explosions = [],
+    focus = ship,
+    imgDataObj, imgData, imgDataLength,
+    gConst = 0.01, //6.674e-11
+    start = Date.now();
+
+function log() { // debug
+  var args = [];
+  for (var i=0; i<arguments.length; i++) args.push(arguments[i]); // debug
+  /Android/.test(navigator.userAgent) ? // debug
+    alert(args.join(' - ')) : // debug
+    console.log.apply(console,args); // debug
+} // debug
+
+// Build interface:
+btZ.onclick = function() {
+  focus = sun;
+  log( h,biggerPlanetD, zoom = h/biggerPlanetD/2.5 )
+};
+
+function shipDie(txt, showNow) {
+  shipAlive = false;
+  if (!showNow) return setTimeout( function(){ shipDie(txt,true) }, 500 );
+  focus = sun;
+  zoom = h/biggerPlanetD/2.5;
+  if (!txt) txt = 'You die.'
+  deadMsg.innerHTML += txt;
+  deadMsg.style.display = 'block';
+}
+
+(window.onresize = function(e) {
+  scrCX = (c.width = w = d.documentElement.clientWidth) / 2
+  scrCY = (c.height = h = d.documentElement.clientHeight) / 2
+  log(w,h)
+  /*
+  log( 'resize', scrCX,w, scrCY,h ); // debug
+  imgDataObj = ctx.getImageData(0,0,w,h);
+  imgData = imgDataObj.data;
+  for (var x=-scrCX; x<scrCX; x++) {
+    for (var y=-scrCY; y<scrCY; y++) {
+      var i = w*(y+scrCY) + x+scrCX,
+          j = y * x + start,
+          v1 = (x*x/3+y*y-3e4) / 20,
+          v2 = abs(j) % v1;
+      if ( v2 < 15 ) {
+        imgData[i*4+0] = 155 + ( v2%3<0.5 ? 80 : 0 )
+        imgData[i*4+1] = 155 + ( v2%4<0.5 ? 90 : 0 )
+        imgData[i*4+2] = 160 + ( v2%2<0.5 ? 90 : 0 )
+        imgData[i*4+3] = v2<5 ? v2*70 : v2*17
+        //imgData[i*4+3] = (1-(abs(j)%(x*x+y*y-1e4)/400)) * 255;
+      }
+    }
+  }*/
+})();
+
+function distP2P(p1, p2) {
+  var dx = p1.x - p2.x,
+      dy = p1.y - p2.y,
+      d = Math.sqrt( dx*dx + dy*dy ),
+      x = dx / d,
+      y = dy / d;
+  return { x:x, y:y, d:d }
+}
+
+function boidsOnPlanet(p) {
+  var list = [];
+  boids.forEach(function(b){ if(b.p==p) list.push(b) });
+  return list;
+}
+
+setInterval(function() {
+
+  // Update planets positions:
+  for ( var id in planets ) {
+    p = planets[id];
+    if (!p.d) {
+      p.x = p.y = 0;
+    } else {
+      p.a += p.v;
+      var oldx = p.x, oldy = p.y;
+      p.x = Math.cos(p.a)*p.d + planets[p.p||'sun'].x;
+      p.y = Math.sin(p.a)*p.d + planets[p.p||'sun'].y;
+      p.vx = p.x - oldx;
+      p.vy = p.y - oldy;
+      //log( '1>', id, p.a, p.v, p.d, p.x )
+    }
+  }
+
+  //macro shipLandedX: @1.x + Math.cos(shipRotate)*(@1.r+10)
+  //macro shipLandedY: @1.y + Math.sin(shipRotate)*(@1.r+10)
+
+  // Update ship position:
+  if (shipLanded) { // in a planet
+    shipVX = shipVY = 0;
+    ship.x = shipLandedX(shipPlanet);
+    ship.y = shipLandedY(shipPlanet);
+    if (shipJet) {
+      shipLanded = false;
+      shipVX = Math.cos(shipRotate) * 0.2;
+      shipVY = Math.sin(shipRotate) * 0.2;
+    }
+    shipRotateV = 0;
+  }
+  if (shipAlive && !shipLanded) { // Ship is fling
+    if (shipJet) {
+      shipVX += Math.cos(shipRotate) * 0.1;
+      shipVY += Math.sin(shipRotate) * 0.1;
+    }
+    if ( leftArrowIsPressed ) shipRotateJet = -0.01;
+    else if ( rightArrowIsPressed ) shipRotateJet = 0.01;
+    else shipRotateJet = 0;
+    shipRotateV += shipRotateJet; // side jets increase angular velocity
+    shipRotate += shipRotateV;    // rotation state increased by angular velocity
+    shipRotateV *= 0.99;           // Rotation friction
+    for ( id in planets ) {
+      p = planets[id];
+      dist = distP2P( p, ship );
+      // Normal gravity lower to distance. Here never is so far.
+      f = dist.d<999 ? (gConst*p.m)/dist.d : (gConst*p.m)/999;
+      shipVX += f * dist.x;
+      shipVY += f * dist.y;
+      touch = dist.d - p.r - 10;
+      if (touch < 0) {
+        if (p == sun) { // Ship die if dropped into sun
+          shipDie('You crash in the sun before colonize all start system.');
+          explosions.push({ x:ship.x, y:ship.y, r:10 });
+        } else { // Ship landed a planet
+          if (touch < -5) { // Too hard! Explode
+            shipDie(
+              'You crash in a planet before colonize all start system.'+
+              '<p/>Impact: '+Math.round(touch*-100)+'uF. Maximum is 500uF.'
+            );
+            explosions.push({ x:ship.x, y:ship.y, r:10 });
+          } else {
+            espectedLandingX = shipLandedX(p);
+            espectedLandingY = shipLandedY(p);
+            if (
+                 Math.abs(ship.x - espectedLandingX) > 5 ||
+                 Math.abs(ship.y - espectedLandingY) > 5
+               ) {
+              shipDie(
+                'You crash in a planet before colonize all start system.'+
+                '<p/>Bad angle.'
+              );
+              explosions.push({ x:ship.x, y:ship.y, r:10 });
+            } else {
+              shipLanded = true;
+              shipPlanet = p;
+            }
+          }
+        }
+      }
+    }
+    ship.x += shipVX;
+    ship.y += shipVY;
+  }
+
+  // Update boids positions:
+  boids.forEach(function(b){
+    for ( id in planets ) {
+      p = planets[id];
+      dist = distP2P(p,b);
+          f = dist.d<p.r*1.6 ? (gConst*p.m*2)/dist.d : // Near a planet, force gravity
+              dist.d<999 ? (gConst*p.m)/dist.d :       // More real gravity calc
+              (gConst*p.m)/999;                        // Never is so far
+      b.p = b.p || sun;
+      b.p = dist.d < distP2P(b.p,b).d ? p : b.p; // boid's nearest planet
+      b.vx += f*dist.x;
+      b.vy += f*dist.y;
+      //b.vx *= 0.999 //dist.d<20 ? 0.7 : 0.999 // some atmosphere resistance
+      //b.vy *= 0.999 //dist.d<20 ? 0.7 : 0.999
+      b.x += b.vx;
+      b.y += b.vy;
+      // test boid to land collision
+      touch = dist.d - p.r - b.r;
+      if (touch < 0) {
+        if (p == sun) { // Boid die if dropped into sun
+          var newList = [];
+          boids.forEach(function(nb){
+            if(nb!=b) newList.push(nb);
+          });
+          boids = newList;
+        } else { // Boid landed a planet
+          var v = abs(b.vx) + abs(b.vy);
+          v<1 ? v=0 : 0;
+          b.vx = p.vx/20 - dist.x * v * 0.4;
+          b.vy = p.vy/20 - dist.y * v * 0.4;
+          b.x += -dist.x * (p.r + b.r - dist.d) + 0.1;
+          b.y += -dist.y * (p.r + b.r - dist.d) + 0.1;
+        }
+      }
+    }
+
+    // test boid to boid collision
+    boids.forEach(function(b2){
+      if ( b2 != b ) {
+        dist = distP2P(b2,b);
+        touch = dist.d - b.r - b2.r;
+        if (touch < 0) {
+          if (b.o != b2.o) { // Boids conflict. Both die.
+            var newList = [];
+            boids.forEach(function(nb){
+              if(nb!=b && nb!=b2) newList.push(nb);
+            });
+            boids = newList;
+          } else {
+            b.vx += (1-dist.x)/100;
+            b.vy += (1-dist.y)/100;
+            b2.vx -= (1-dist.x)/100;
+            b2.vy -= (1-dist.y)/100;
+          }
+        }
+      }
+    });
+
+    // grow boid
+    // TODO: grow only in a planet, limited by its size.
+    if ( b.r <= 2 &&    // not so big
+         b.p != sun &&  // not into sun
+         distP2P(b.p,b).d < (b.p.r+10) // near to a planet surface
+       ) {
+      b.r += 0.01;
+    }
+    else if ( b.r > 2 &&  // Big enough
+              boidsOnPlanet(b.p).length < b.p.r/2 && // not too many boids in the planet
+              rand(4) < -1 // 25% chance to go
+            ) {
+      // Boid reproduction
+      b.x += 1
+      b.vx += 0.1;
+      b.r = 1;
+      boids.push({ o:b.o, x:b.x-2, y:b.y, r:1+rand(0.5), vx:b.vx-0.2, vy:b.vy });
+    }
+  });
+
+  viewCX = scrCX - focus.x * z;
+  viewCY = scrCY - focus.y * z;
+  vCX = ( viewCX + vCX ) / 2;
+  vCY = ( viewCY + vCY ) / 2;
+  z = ( zoom + z ) / 2;
+
+  // Draw elements:
+  ctx.clearRect(0,0,w,h);
+  // Stars
+  //ctx.putImageData(imgDataObj, 0, 0);
+  // Sun rays
+  // createRadialGradient's first ray must to be 0 for android.
+  var grd = ctx.createRadialGradient(vCX, vCY, 0, vCX, vCY, z*sun.r*4);
+  grd.addColorStop(0, 'rgb('+sun.c[0]+')');
+  grd.addColorStop(0.2, 'rgba('+sun.c[0]+',0.5');
+  grd.addColorStop(1, 'rgba(0,0,0,0.5)');
+  ctx.fillStyle = grd;
+  //ctx.fillStyle = '#F80';
+  ctx.beginPath();
+  var timeDif = (Date.now() - start)/6000;
+  for (var i=timeDif; i<timeDif+7; i+=0.314*2) {
+    ctx.arc( vCX, vCY, z*sun.r*4, i,i+0.314 );
+    ctx.lineTo(vCX, vCY);
+  }
+  ctx.closePath();
+  ctx.fill();
+  // Draw Planets
+  for ( id in planets ) {
+    p = planets[id];
+    biggerPlanetD = Math.max( biggerPlanetD, p.d||0 );
+    // Planet Bright
+    var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0, //z*p.r/9,
+                                       z*p.x+vCX, z*p.y+vCY, z*p.r*(p==sun?3:2));
+    grd.addColorStop(0, 'rgb('+p.c[1]+')');
+    grd.addColorStop((p==sun?0.32:0.48), 'rgb('+p.c[1]+')');
+    grd.addColorStop((p==sun?0.32:0.48), 'rgba('+p.c[2]+','+(p==sun?0.5:0.2)+')');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r*(p==sun?3:2), 0,7 );
+    ctx.closePath();
+    ctx.fill();
+    // Planet Volume Shadow
+    var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0, //z*p.r/9,
+                                       z*p.x+vCX, z*p.y+vCY, z*p.r);
+    grd.addColorStop(0, 'rgba('+p.c[1]+',0)');
+    grd.addColorStop(1, 'rgb('+p.c[0]+')');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r, 0,7 );
+    ctx.closePath();
+    ctx.fill();
+  }
+  // Boids
+  //boids.forEach(function(b){
+  var totB = boids.length;
+  for ( var i=0; i<totB; i++ ) {
+    var b = boids[i];
+    var c1 = (100+(i%6)*10), c2 = 0,
+        cl1 = Math.round(220+(i%6)/5), cl2 = 100;
+    if (b.o == 0) {
+      c2 = c1;
+      c1 = 100;
+      cl2 = cl1;
+      cl1 = 160;
+    }
+    ctx.strokeStyle = 'rgb(150,'+cl1+','+cl2+')';
+    ctx.beginPath();
+    ctx.moveTo( z*b.x+vCX, z*b.y+vCY );
+    ctx.lineTo( z*b.vx*-20+z*b.x+vCX, z*b.vy*-20+z*b.y+vCY );
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.fillStyle = 'rgb(0,'+c1+','+c2+')';
+    ctx.arc( z*b.x+vCX, z*b.y+vCY, z*b.r, 0,7 );
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    /*
+    ctx.beginPath(); // debug
+    ctx.strokeStyle = '#FFF'; // debug
+    ctx.moveTo( z*b.x+vCX, z*b.y+vCY ); // debug
+    ctx.lineTo( z*b.vx*10+z*b.x+vCX, z*b.vy*10+z*b.y+vCY ); // debug
+    ctx.stroke(); // debug
+    */
+  }
+  //});
+
+  // Draw explosions
+  explosions.forEach(function(e) {
+    e.t = e.t ? e.t+1 : .5;
+    ctx.fillStyle = 'rgba(255,255,255,'+(20-e.t)/20+')';
+    ctx.beginPath();
+    ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t), 0,7 );
+    ctx.fill();
+    if (e.t>19) { // explosion end
+      var newList = [];
+      explosions.forEach(function(e2){
+        if( e2 != e ) newList.push(e2);
+      });
+      explosions = newList;
+    }
+  });
+
+  // Draw Ship
+  if (shipAlive) {
+    ctx.save();
+    ctx.translate( z*ship.x+vCX, z*ship.y+vCY );
+    ctx.rotate(shipRotate);
+    var scale = z<1 ? (z+1)/2 : z;
+    ctx.scale(scale,scale);
+    /*
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)'; // debug
+    ctx.beginPath(); // debug
+    ctx.arc( 0, 0, 20, 0,7 ); // debug
+    ctx.stroke(); // debug
+    */
+    if (shipJet) { // Back Fire
+      grd = ctx.createRadialGradient(-9+rand(1),0, 1, -11,0, 4);
+      grd.addColorStop(0, '#FF0');
+      grd.addColorStop(1, '#F00');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.moveTo(-7.5,0);
+      ctx.bezierCurveTo( -11,-7.5, -13,-.5, -20+rand(2),0 );
+      ctx.bezierCurveTo( -13,1,  -11,7.5, -7.5,0 );
+      ctx.fill();
+    }
+    if (rightArrowIsPressed) { // Fire Clockwise
+      grd = ctx.createRadialGradient(7.5,-5, 0, 7.5,-6, 2);
+      grd.addColorStop(0, '#FF0');
+      grd.addColorStop(1, '#F00');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.moveTo(7.5,-4);
+      ctx.bezierCurveTo( 10,-6.5, 8,-6.5, 7.5,-11+rand(2) );
+      ctx.bezierCurveTo( 7,-6.5,  5,-6.5, 7.5,-4 );
+      ctx.fill();
+    }
+    if (leftArrowIsPressed) { // Fire Anti-Clockwise
+      grd = ctx.createRadialGradient(7.5,5, 0, 7.5,6, 2);
+      grd.addColorStop(0, '#FF0');
+      grd.addColorStop(1, '#F00');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.moveTo(7.5,4);
+      ctx.bezierCurveTo( 10,6.5, 8,6.5, 7.5,11+rand(2) );
+      ctx.bezierCurveTo( 7,6.5,  5,6.5, 7.5,4 );
+      ctx.fill();
+    }
+    // Wings
+    ctx.fillStyle = '#599';
+    ctx.beginPath();
+    ctx.moveTo(-2.5,-9.5);
+    ctx.bezierCurveTo( 7.5,-12.5, 7.5,12.5, -2.5,9.5 );
+    ctx.closePath();
+    ctx.fill();
+    // Body
+    grd = ctx.createRadialGradient(1, 0, 0, 1, 0, 10);
+    grd.addColorStop(0, '#F0F8F8');
+    grd.addColorStop(1, '#799');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.moveTo(-9,-4.5);
+    ctx.bezierCurveTo( 0,-10, 9.5,-4, 10,0 );
+    ctx.bezierCurveTo( 10,4,  0,10, -9,4.5 );
+    ctx.lineTo(-8, 0);
+    ctx.fill();
+    // Staff Boids
+    ctx.lineWidth = 1/(z+1/2);
+    ctx.strokeStyle = '#181';
+    ctx.fillStyle = '#6D3';
+    ctx.beginPath();
+    //ctx.arc( -8,0, 4, 0,7 );
+    //ctx.moveTo(4,0);
+    ctx.arc( -4,0, 2, 0,7 );
+    ctx.moveTo(2,0);
+    ctx.arc( 0,0, 2, 0,7 );
+    ctx.moveTo(6,0);
+    ctx.arc( 4,0, 2, 0,7 );
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+}, 30);
+
+if (btU.ontouchstart) b.className += ' touchable';
+
+bts = d.getElementsByTagName('b');
+//for (i=0; b=bts[i]; i++)
+//  b.addEventListener("touchstart", function(evt){ evt.preventDefault() });
+
+//function handleStart(evt) { evt.preventDefault() }
+//d.addEventListener("touchstart", handleStart, false);
+
+d.onclick = function (ev) {
+  if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
+  if (d.webkitFullscreenEnabled) b.webkitRequestFullScreen();
+}
+
+d.onkeydown = function (ev) {
+  switch (ev.keyCode) {
+    case 38: shipJet = true;              b.className += ' pressU'; break;
+    case 37: leftArrowIsPressed = true;   b.className += ' pressL'; break;
+    case 39: rightArrowIsPressed = true;  b.className += ' pressR'; break;
+  }
+}
+d.onkeyup = function (ev) {
+  switch (ev.keyCode) {
+    case 38: shipJet = false;
+             b.className = b.className.replace(/pressU/g,''); break;
+    case 37: leftArrowIsPressed = false;
+             b.className = b.className.replace(/pressL/g,''); break;
+    case 39: rightArrowIsPressed = false;
+             b.className = b.className.replace(/pressR/g,''); break;
+  }
+}
+
+/*
+c.onclick = function (ev) {
+  if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
+  if (d.webkitFullscreenEnabled) b.webkitRequestFullScreen();
+  x = (ev.clientX - vCX)/z;
+  y = (ev.clientY - vCY)/z;
+  log('click', x,y); // debug
+  for ( id in planets ) {
+    p = planets[id];
+    if ( distP2P(p,{x:x,y:y}).d < p.r ) { // if user click in a planet, the focus change.
+      // if the planet already has focus, change the zoom.
+      if ( focus == p ) zoom = zoom==2 ? 1 : 2;
+      log('click in '+id, focus == p, zoom ); // debug
+      focus = p;
+    }
+  }
+}
+*/
