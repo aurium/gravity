@@ -9,12 +9,13 @@ function randColor(mr,vr,mg,vg,mb,vb) {
       r3 = Math.round( r1*3.6 ),
       g3 = Math.round( g1*3.6 ),
       b3 = Math.round( b1*3.6 );
-      r2 > 255 ? r2=255 : 0;
-      g2 > 255 ? g2=255 : 0;
-      b2 > 255 ? b2=255 : 0;
-      r3 > 255 ? r3=255 : 0;
-      g3 > 255 ? g3=255 : 0;
-      b3 > 255 ? b3=255 : 0;
+      //macro biteLimit: @1 > 255 ? @1=255 : 0
+      biteLimit(r2);
+      biteLimit(g2);
+      biteLimit(b2);
+      biteLimit(r3);
+      biteLimit(g3);
+      biteLimit(b3);
   return [ [r1,g1,b1].join(','), [r2,g2,b2].join(','), [r3,g3,b3].join(',') ];
 }
 
@@ -22,6 +23,8 @@ var ctx = c.getContext('2d'),
     d = document,
     b = d.body,
     abs = Math.abs,
+    pi = Math.PI,
+    completeRad = 2 * pi, // complete revolution
     planets = {
       sun:{ m:150, c:['255,180,0','255,255,10','255,255,80'], r:60+rand(10) },
 
@@ -201,7 +204,7 @@ setInterval(function() {
     }
     shipRotateV = 0;
   }
-  if (shipAlive && !shipLanded) { // Ship is fling
+  else if (shipAlive) { // Ship is fling
     if (shipJet) {
       shipVX += Math.cos(shipRotate) * 0.1;
       shipVY += Math.sin(shipRotate) * 0.1;
@@ -211,7 +214,9 @@ setInterval(function() {
     else shipRotateJet = 0;
     shipRotateV += shipRotateJet; // side jets increase angular velocity
     shipRotate += shipRotateV;    // rotation state increased by angular velocity
-    shipRotateV *= 0.99;           // Rotation friction
+    shipRotateV *= 0.99;          // Rotation friction
+    shipRotate %= completeRad;
+    if (shipRotate<0) shipRotate += completeRad;
     for ( id in planets ) {
       p = planets[id];
       dist = distP2P( p, ship );
@@ -220,23 +225,36 @@ setInterval(function() {
       shipVX += f * dist.x;
       shipVY += f * dist.y;
       touch = dist.d - p.r - 10;
-      if (touch < 0) {
+      if (touch < 15) { // Near to the planet
+        // Auto pilot try to help to align the ship for landing
+        acos = Math.acos(dist.x);
+        asin = Math.asin(dist.y);
+        angleToPlanet = pi + (asin > 0 ? acos : completeRad - acos);
+        angleToPlanet %= completeRad;
+        // Remove near to zero jump (useless complete turn the ship)
+        if ( angleToPlanet < pi/2 && shipRotate > pi*1.5 ) shipRotate -= completeRad;
+        if ( angleToPlanet > pi*1.5 && shipRotate < pi/2 ) shipRotate += completeRad;
+        // Adjust ship rotation
+        if ( angleToPlanet-shipRotate > 0.2 ) shipRotate += 0.1;
+        else if ( angleToPlanet-shipRotate > 0.1 ) shipRotate += 0.03;
+        if ( angleToPlanet-shipRotate < -0.2 ) shipRotate -= 0.1;
+        else if ( angleToPlanet-shipRotate < -0.1 ) shipRotate -= 0.03;
+      }
+      if (touch < 0) { // Touch the planet
         if (p == sun) { // Ship die if dropped into sun
           shipDie('You crash in the sun before colonize all start system.');
           explosions.push({ x:ship.x, y:ship.y, r:10 });
         } else { // Ship landed a planet
-          if (touch < -5) { // Too hard! Explode
+          if (touch < -2) { // Too hard! Explode
             shipDie(
               'You crash in a planet before colonize all start system.'+
-              '<p/>Impact: '+Math.round(touch*-100)+'uF. Maximum is 500uF.'
+              '<p/>Impact: '+Math.round(touch*-100)+'uF. Maximum is 200uF.'
             );
             explosions.push({ x:ship.x, y:ship.y, r:10 });
           } else {
-            espectedLandingX = shipLandedX(p);
-            espectedLandingY = shipLandedY(p);
             if (
-                 Math.abs(ship.x - espectedLandingX) > 5 ||
-                 Math.abs(ship.y - espectedLandingY) > 5
+                 abs(ship.x - (shipLandedX(p))) > 5 ||
+                 abs(ship.y - (shipLandedY(p))) > 5
                ) {
               shipDie(
                 'You crash in a planet before colonize all start system.'+
@@ -251,9 +269,9 @@ setInterval(function() {
         }
       }
     }
-    ship.x += shipVX;
-    ship.y += shipVY;
   }
+  ship.x += shipVX;
+  ship.y += shipVY;
 
   // Update boids positions:
   boids.forEach(function(b){

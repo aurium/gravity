@@ -3,11 +3,10 @@
 cd "$(dirname "$0")"
 zip=/tmp/gravity.zip
 
-ws='[ \t]'
-nws='[^ \t]'
+ws="$(echo -en '[ \t]')"
+nws="$(echo -en '[^ \t]')"
 macro_re="^.*//$ws*macro$ws+($nws+)$ws*:$ws*([^\r\n]+).*\$"
 
-echo ==============================
 sed_script=$(
   egrep "$macro_re" gravity.metajs |
   while read macro_def; do
@@ -18,8 +17,6 @@ sed_script=$(
   echo 's#//.*##;'
   echo 's#/\*[^*]+\*/##g;'
 )
-echo "$sed_script"
-echo ==============================
 
 sed -r "$sed_script" gravity.metajs > gravity.js
 
