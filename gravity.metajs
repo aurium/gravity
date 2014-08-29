@@ -93,6 +93,11 @@ var ctx = c.getContext('2d'),
       { o:1, x:62, y:0, r:2, vx:0, vy:0 }
     ],
     sun = planets.sun,
+    // zoom: the wanted zoom.
+    // z: the current zoom.
+    // scrC*: the center of the screen, calculated on start and each resize.
+    // viewC*: the related wanted position to put on the center of the screen.
+    // vC*: the current related position to put on the center of the screen.
     vCX=vCY = viewCX=viewCY = scrCX=scrCY = w=h = z=zoom = 0.5,
     ship = {x:-200, y:-200},
     shipVX = shipVY = 0,
@@ -173,6 +178,13 @@ function boidsOnPlanet(p) {
 
 setInterval(function() {
 
+  if ( shipAlive ) {
+    absShipV = abs(shipVX) + abs(shipVY);
+    if ( absShipV > 1 ) zoom = 2/absShipV;
+    else zoom = 2;
+    if ( zoom < 0.2 ) zoom = 0.2;
+  }
+
   // Update planets positions:
   for ( var id in planets ) {
     p = planets[id];
@@ -199,8 +211,8 @@ setInterval(function() {
     ship.y = shipLandedY(shipPlanet);
     if (shipJet) {
       shipLanded = false;
-      shipVX = Math.cos(shipRotate) * 0.2;
-      shipVY = Math.sin(shipRotate) * 0.2;
+      shipVX = Math.cos(shipRotate) * 0.2; // TODO: add the planet velocity to it
+      shipVY = Math.sin(shipRotate) * 0.2; // TODO: idem
     }
     shipRotateV = 0;
   }
@@ -355,7 +367,7 @@ setInterval(function() {
   viewCY = scrCY - focus.y * z;
   vCX = ( viewCX + vCX ) / 2;
   vCY = ( viewCY + vCY ) / 2;
-  z = ( zoom + z ) / 2;
+  z = ( zoom + z*9 ) / 10;
 
   // Draw elements:
   ctx.clearRect(0,0,w,h);
