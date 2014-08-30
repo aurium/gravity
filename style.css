@@ -52,8 +52,7 @@ b {
   text-shadow: 0 0 9px rgba(255,255,255,0.9);
   display: none;
 }
-#btU:hover, #btL:active, #btR:active,
-.pressU #btU, .pressL #btL, .pressR #btR {
+#btU.pressed, #btL.pressed, #btR.pressed {
   background: rgba(200,0,0,0.3);
 }
 .touchable #btU, .touchable #btL, .touchable #btR {

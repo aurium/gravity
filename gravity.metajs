@@ -1,3 +1,5 @@
+try {
+
 function rand(num) { return (Math.random()-0.5) * (num||1) }
 function randColor(mr,vr,mg,vg,mb,vb) {
   var r1 = Math.round( mr + rand(vr) ),
@@ -111,9 +113,9 @@ var ctx = c.getContext('2d'),
     shipVX = shipVY = 0,
     shipAlive = true,
     shipLanded = false, shipPlanet = null,
-    shipJet = shipRotateJet = false,
+    shipRotateJet = false,
     shipRotate = 0, shipRotateV = 0,
-    leftArrowIsPressed = rightArrowIsPressed = false,
+    usrInput = {},
     explosions = [],
     focus = ship,
     imgDataObj, imgData, imgDataLength,
@@ -124,7 +126,7 @@ function log() { // debug
   var args = [];
   for (var i=0; i<arguments.length; i++) args.push(arguments[i]); // debug
   /Android/.test(navigator.userAgent) ? // debug
-    alert(args.join(' - ')) : // debug
+    0: //alert(args.join(' - ')) : // debug
     console.log.apply(console,args); // debug
 } // debug
 
@@ -212,6 +214,7 @@ setInterval(function() {
 
   if ( !ship ) {
     // Initialize Ship
+    log('Initialize Ship'); //debug
     ship = {};
     shipPlanet = planets.p2a;
     shipRotate = -pi/2;
@@ -227,7 +230,7 @@ setInterval(function() {
     shipVX = shipVY = 0;
     ship.x = shipLandedX(shipPlanet);
     ship.y = shipLandedY(shipPlanet);
-    if (shipJet) {
+    if (usrInput.btU) {
       shipLanded = false;
       shipVX = Math.cos(shipRotate) * 0.2; // TODO: add the planet velocity to it
       shipVY = Math.sin(shipRotate) * 0.2; // TODO: idem
@@ -235,12 +238,12 @@ setInterval(function() {
     shipRotateV = 0;
   }
   else if (shipAlive) { // Ship is fling
-    if (shipJet) {
+    if (usrInput.btU) {
       shipVX += Math.cos(shipRotate) * 0.1;
       shipVY += Math.sin(shipRotate) * 0.1;
     }
-    if ( leftArrowIsPressed ) shipRotateJet = -0.01;
-    else if ( rightArrowIsPressed ) shipRotateJet = 0.01;
+    if ( usrInput.btL ) shipRotateJet = -0.01;
+    else if ( usrInput.btR ) shipRotateJet = 0.01;
     else shipRotateJet = 0;
     shipRotateV += shipRotateJet; // side jets increase angular velocity
     shipRotate += shipRotateV;    // rotation state increased by angular velocity
@@ -382,13 +385,19 @@ setInterval(function() {
   });
 
   // Adjust camera:
+  newZ = ( zoom + z*9 ) / 10;
+  //macro sign: ( @1<0 ? -1 : 1 )
+  if ( shipAlive && abs(newZ-z)>0.005 ) z += 0.005 * sign(newZ-z);
+  else z = newZ;
   viewCX = scrCX - focus.x * z;
   viewCY = scrCY - focus.y * z;
-  vCX = ( viewCX + vCX*14 ) / 15;
-  vCY = ( viewCY + vCY*14 ) / 15;
-  newZ = ( zoom + z*9 ) / 10;
-  if ( shipAlive && abs(newZ-z)>0.008 ) z += 0.008 * Math.sign(newZ-z);
-  else z = newZ;
+  if ( z < 1 ) {
+    vCX = ( viewCX + vCX*10 ) / 11;
+    vCY = ( viewCY + vCY*10 ) / 11;
+  } else {
+    vCX = ( viewCX + vCX*5 ) / 6;
+    vCY = ( viewCY + vCY*5 ) / 6;
+  }
 
   // Draw elements:
   ctx.clearRect(0,0,w,h);
@@ -504,7 +513,7 @@ setInterval(function() {
     ctx.arc( 0, 0, 20, 0,7 ); // debug
     ctx.stroke(); // debug
     */
-    if (shipJet) { // Back Fire
+    if (usrInput.btU) { // Back Fire
       grd = ctx.createRadialGradient(-9+rand(1),0, 1, -11,0, 4);
       grd.addColorStop(0, '#FF0');
       grd.addColorStop(1, '#F00');
@@ -515,7 +524,7 @@ setInterval(function() {
       ctx.bezierCurveTo( -13,1,  -11,7.5, -7.5,0 );
       ctx.fill();
     }
-    if (rightArrowIsPressed) { // Fire Clockwise
+    if (usrInput.btR) { // Fire Clockwise
       grd = ctx.createRadialGradient(7.5,-5, 0, 7.5,-6, 2);
       grd.addColorStop(0, '#FF0');
       grd.addColorStop(1, '#F00');
@@ -526,7 +535,7 @@ setInterval(function() {
       ctx.bezierCurveTo( 7,-6.5,  5,-6.5, 7.5,-4 );
       ctx.fill();
     }
-    if (leftArrowIsPressed) { // Fire Anti-Clockwise
+    if (usrInput.btL) { // Fire Anti-Clockwise
       grd = ctx.createRadialGradient(7.5,5, 0, 7.5,6, 2);
       grd.addColorStop(0, '#FF0');
       grd.addColorStop(1, '#F00');
@@ -575,53 +584,43 @@ setInterval(function() {
 
 }, 30);
 
-if (btU.ontouchstart) b.className += ' touchable';
-
-bts = d.getElementsByTagName('b');
-//for (i=0; b=bts[i]; i++)
-//  b.addEventListener("touchstart", function(evt){ evt.preventDefault() });
-
-//function handleStart(evt) { evt.preventDefault() }
-//d.addEventListener("touchstart", handleStart, false);
+try {
+  if (document.createEvent("TouchEvent")) b.className += ' touchable';
+} catch(e) { }
 
 d.onclick = function (ev) {
   if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
   if (d.webkitFullscreenEnabled) b.webkitRequestFullScreen();
 }
 
+function pressBt(bt, on) {
+  usrInput[bt] = on;
+  window[bt].className = on ? 'pressed' : ''
+}
+
 d.onkeydown = function (ev) {
   switch (ev.keyCode) {
-    case 38: shipJet = true;              b.className += ' pressU'; break;
-    case 37: leftArrowIsPressed = true;   b.className += ' pressL'; break;
-    case 39: rightArrowIsPressed = true;  b.className += ' pressR'; break;
+    case 38: pressBt('btU', true); break;
+    case 37: pressBt('btL', true); break;
+    case 39: pressBt('btR', true); break;
   }
-}
+};
+
 d.onkeyup = function (ev) {
   switch (ev.keyCode) {
-    case 38: shipJet = false;
-             b.className = b.className.replace(/pressU/g,''); break;
-    case 37: leftArrowIsPressed = false;
-             b.className = b.className.replace(/pressL/g,''); break;
-    case 39: rightArrowIsPressed = false;
-             b.className = b.className.replace(/pressR/g,''); break;
+    case 38: pressBt('btU', false); break;
+    case 37: pressBt('btL', false); break;
+    case 39: pressBt('btR', false); break;
   }
 }
 
-/*
-c.onclick = function (ev) {
-  if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
-  if (d.webkitFullscreenEnabled) b.webkitRequestFullScreen();
-  x = (ev.clientX - vCX)/z;
-  y = (ev.clientY - vCY)/z;
-  log('click', x,y); // debug
-  for ( id in planets ) {
-    p = planets[id];
-    if ( distP2P(p,{x:x,y:y}).d < p.r ) { // if user click in a planet, the focus change.
-      // if the planet already has focus, change the zoom.
-      if ( focus == p ) zoom = zoom==2 ? 1 : 2;
-      log('click in '+id, focus == p, zoom ); // debug
-      focus = p;
-    }
-  }
+btL.addEventListener("touchstart", function(){ pressBt('btL', true) });
+btR.addEventListener("touchstart", function(){ pressBt('btR', true) });
+btU.addEventListener("touchstart", function(){ pressBt('btU', true) });
+btL.addEventListener("touchend", function(){ pressBt('btL', false) });
+btR.addEventListener("touchend", function(){ pressBt('btR', false) });
+btU.addEventListener("touchend", function(){ pressBt('btU', false) });
+
+} catch (e) {
+  alert(e)
 }
-*/
