@@ -12,7 +12,11 @@ sed_script=$(
   while read macro_def; do
     macro_name="$( echo "$macro_def" | sed -r "s#$macro_re#\1#" )"
     macro_expr="$( echo "$macro_def" | sed -r "s#$macro_re#\2#; s#@([1-9])#\\\1#g" )"
-    echo "s#$macro_name\(([^),]+),?([^),]+)?\)#$macro_expr#g;"
+    if ( echo "$macro_def" | grep -q '@' ); then
+      echo "s#$macro_name\(([^),]+),?([^),]+)?\)#$macro_expr#g;"
+    else
+      echo "s#$macro_name#$macro_expr#g;"
+    fi
   done
   echo 's#//.*##;'
   echo 's#/\*[^*]+\*/##g;'
