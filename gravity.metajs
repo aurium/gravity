@@ -22,8 +22,10 @@ function randColor(mr,vr,mg,vg,mb,vb) {
 }
 
 var ctx = c.getContext('2d'),
+    ctxMap = map.getContext('2d'),
     d = document,
     b = d.body,
+    touchable = false,
     abs = Math.abs,
     pi = Math.PI,
     completeRad = 2 * pi, // complete revolution
@@ -122,6 +124,13 @@ var ctx = c.getContext('2d'),
     gConst = 0.01, //6.674e-11
     start = Date.now();
 
+try {
+  if (document.createEvent("TouchEvent")) {
+    b.className += ' touchable';
+    touchable = true;
+  }
+} catch(e) { }
+
 function log() { // debug
   var args = [];
   for (var i=0; i<arguments.length; i++) args.push(arguments[i]); // debug
@@ -147,9 +156,13 @@ function shipDie(txt, showNow) {
 }
 
 (window.onresize = function(e) {
-  scrCX = (c.width = w = d.documentElement.clientWidth) / 2
-  scrCY = (c.height = h = d.documentElement.clientHeight) / 2
-  log(w,h)
+  scrCX = (c.width = w = d.documentElement.clientWidth) / 2;
+  scrCY = (c.height = h = d.documentElement.clientHeight) / 2;
+  mapCX = (map.width = mapBox.clientWidth - 10) / 2;
+  mapCY = (map.height = mapBox.clientHeight - 10) / 2;
+  ctxMap.fillStyle = '#333';
+  ctxMap.fillRect (0,0,map.width,map.height);
+  log(w,h, map.width,map.height);
   /*
   log( 'resize', scrCX,w, scrCY,h ); // debug
   imgDataObj = ctx.getImageData(0,0,w,h);
@@ -373,7 +386,7 @@ setInterval(function() {
       b.r += 0.01;
     }
     else if ( b.r > 2 &&  // Big enough
-              boidsOnPlanet(b.p).length < b.p.r/2 && // not too many boids in the planet
+              boidsOnPlanet(b.p).length < b.p.r/5 && // not too many boids in the planet
               rand(4) < -1 // 25% chance to go
             ) {
       // Boid reproduction
@@ -399,8 +412,14 @@ setInterval(function() {
     vCY = ( viewCY + vCY*5 ) / 6;
   }
 
-  // Draw elements:
+  mapZ = (map.height/biggerPlanetD)/2.2;
+
+  /******** Draw elements *****************************************************/
+  // Clear all
   ctx.clearRect(0,0,w,h);
+  ctxMap.clearRect(0,0,map.width,map.height);
+  //ctxMap.fillStyle = 'rgba(0,0,0,0.02)';
+  //ctxMap.fillRect (0,0,map.width,map.height);
   // Stars
   //ctx.putImageData(imgDataObj, 0, 0);
   // Sun rays
@@ -447,6 +466,12 @@ setInterval(function() {
     ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r, 0,7 );
     ctx.closePath();
     ctx.fill();
+    // Planet on the map
+    ctxMap.fillStyle = p==sun? '#FF7' : 'rgba(220,220,220,1)';
+    ctxMap.beginPath();
+    ctxMap.arc( mapZ*p.x+mapCX, mapZ*p.y+mapCY, mapZ*p.r, 0,7 ); //(p==sun?3:0.6)
+    ctxMap.closePath();
+    ctxMap.fill();
   }
   // Boids
   //boids.forEach(function(b){
@@ -502,6 +527,24 @@ setInterval(function() {
 
   // Draw Ship
   if (shipAlive) {
+    ctxMap.fillStyle = '#6BF';
+    ctxMap.beginPath();
+    ctxMap.arc( mapZ*ship.x+mapCX, mapZ*ship.y+mapCY, 0.9, 0,7 ); //(p==sun?3:0.6)
+    ctxMap.closePath();
+    ctxMap.fill();
+    ctxMap.strokeStyle = 'rgba(0,200,200,0.5)';
+    deg90 = pi/2;
+    turn3 = completeRad/3;
+    ctxMap.arc( mapZ*ship.x+mapCX, mapZ*ship.y+mapCY, 10,
+                shipRotate, shipRotate+turn3 );
+    ctxMap.closePath();
+    ctxMap.arc( mapZ*ship.x+mapCX, mapZ*ship.y+mapCY, 10,
+                shipRotate+turn3, shipRotate+turn3*2 );
+    ctxMap.closePath();
+    ctxMap.arc( mapZ*ship.x+mapCX, mapZ*ship.y+mapCY, 10,
+                shipRotate+turn3*2, shipRotate+turn3*3 );
+    ctxMap.closePath();
+    ctxMap.stroke();
     ctx.save();
     ctx.translate( z*ship.x+vCX, z*ship.y+vCY );
     ctx.rotate(shipRotate);
@@ -583,10 +626,6 @@ setInterval(function() {
   }
 
 }, 30);
-
-try {
-  if (document.createEvent("TouchEvent")) b.className += ' touchable';
-} catch(e) { }
 
 d.onclick = function (ev) {
   if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
