@@ -30,7 +30,7 @@ b {
   -webkit-focus-ring-color: rgba(0, 0, 0, 0);
 }
 
-#btZ {
+/*#btZ {
   top: -10px; left: -10px;
   bottom: auto;
   padding: 25px 25px 25px 25px;
@@ -42,7 +42,8 @@ b {
 }
 #btZ:hover {
   background: rgba(0,200,255,0.3);
-}
+}*/
+
 #btU, #btL, #btR {
   font-size: 30px;
   color: #FFF;
