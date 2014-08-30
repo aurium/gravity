@@ -182,7 +182,7 @@ setInterval(function() {
     absShipV = abs(shipVX) + abs(shipVY);
     if ( absShipV > 1 ) zoom = 2/absShipV;
     else zoom = 2;
-    if ( zoom < 0.2 ) zoom = 0.2;
+    if ( zoom < 0.5 ) zoom = 0.5;
   }
 
   // Update planets positions:
@@ -365,9 +365,11 @@ setInterval(function() {
 
   viewCX = scrCX - focus.x * z;
   viewCY = scrCY - focus.y * z;
-  vCX = ( viewCX + vCX ) / 2;
-  vCY = ( viewCY + vCY ) / 2;
-  z = ( zoom + z*9 ) / 10;
+  vCX = ( viewCX + vCX*14 ) / 15;
+  vCY = ( viewCY + vCY*14 ) / 15;
+  newZ = ( zoom + z*9 ) / 10;
+  if ( shipAlive && abs(newZ-z)>0.008 ) z += 0.008 * Math.sign(newZ-z);
+  else z = newZ;
 
   // Draw elements:
   ctx.clearRect(0,0,w,h);
