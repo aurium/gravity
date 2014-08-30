@@ -25,62 +25,70 @@ var ctx = c.getContext('2d'),
     abs = Math.abs,
     pi = Math.PI,
     completeRad = 2 * pi, // complete revolution
+    //macro orbDist1: 500
+    //macro orbDist2: 900
+    //macro orbDist3: 1400
+    //macro orbDist4: 1900
+    //macro orbVel1: .0020
+    //macro orbVel2: .0010
+    //macro orbVel3: .0005
+    //macro orbVel4: .0002
     planets = {
-      sun:{ m:150, c:['255,180,0','255,255,10','255,255,80'], r:60+rand(10) },
+      sun:{ m:200, c:['255,180,0','255,255,10','255,255,80'], r:150+rand(10) },
 
       // Orbit 1
-      p1a:  { m:40, c:['0,100,180','0,180,220','50,220,255'],
-              r:20+rand(5), d:300+rand(10), v:.002,  a:rand() },
-      m1a1: { m:20, c:['100,100,100','200,200,200','250,250,250'],
-              r:10+rand(3),  d:50+rand(5),  v:.008,  a:rand(7), p:'p1a' },
+      p1a:  { m:40, c:randColor(100,60,80,80,0,120),
+              r:35+rand(10), d:orbDist1+rand(20), v:orbVel1,  a:rand() },
 
       p1b:  { m:40, c:randColor(100,60,80,80,0,120),
-              r:20+rand(5), d:300+rand(10), v:.002,  a:2+rand() },
+              r:35+rand(10), d:orbDist1+rand(20), v:orbVel1,  a:2+rand() },
 
       p1c:  { m:40, c:randColor(100,60,80,80,0,120),
-              r:20+rand(5), d:300+rand(10), v:.002,  a:4+rand() },
+              r:35+rand(10), d:orbDist1+rand(20), v:orbVel1,  a:4+rand() },
 
       // Orbit 2
-      p2a:  { m:30, c:randColor(100,60,80,80,0,120),
-              r:15+rand(8), d:430+rand(20), v:.0016, a:1+rand() },
+      p2a:  { m:30, c:['0,100,180','0,180,220','50,220,255'],
+              r:40, d:orbDist2+rand(50), v:orbVel2, a:0.0+rand()*.8 },
+      m1a1: { m:20, c:['100,100,100','200,200,200','250,250,250'],
+              r:25,  d:130+rand(10),  v:orbVel1*4,  a:rand(7), p:'p2a' },
 
       p2b:  { m:30, c:randColor(100,60,80,80,0,120),
-              r:15+rand(8), d:430+rand(20), v:.0016, a:3+rand() },
+              r:35+rand(10), d:orbDist2+rand(50), v:orbVel2, a:1.5+rand()*.8 },
 
       p2c:  { m:30, c:randColor(100,60,80,80,0,120),
-              r:15+rand(8), d:430+rand(20), v:.0016, a:5+rand() },
+              r:45+rand(10), d:orbDist2+rand(50), v:orbVel2, a:3.0+rand()*.8 },
+
+      p2d:  { m:30, c:randColor(100,60,80,80,0,120),
+              r:35+rand(10), d:orbDist2+rand(50), v:orbVel2, a:4.5+rand()*.8 },
 
       // Orbit 3
       p3a:  { m:50, c:randColor(100,60,80,80,0,120),
-              r:30+rand(8), d:600+rand(20), v:.0013, a:2+rand() },
-      m3a1: { m:20, c:randColor(100,60,80,80,0,120),
-              r:9+rand(3),  d:70+rand(5),   v:.008,  a:rand(7), p:'p3a' },
-      m3a2: { m:20, c:randColor(100,60,80,80,0,120),
-              r:8+rand(3),  d:110+rand(5),  v:.004,  a:rand(), p:'p3a' },
-      m3a3: { m:20, c:randColor(100,60,80,80,0,120),
-              r:8+rand(3),  d:110+rand(5),  v:.004,  a:3+rand(), p:'p3a' },
+              r:70+rand(15), d:orbDist3+rand(20), v:orbVel3, a:2+rand() },
 
       p3b:  { m:50, c:randColor(100,60,80,80,0,120),
-              r:30+rand(8), d:600+rand(20), v:.0013, a:4+rand() },
+              r:80+rand(15), d:orbDist3+rand(20), v:orbVel3, a:4+rand() },
       m3b1: { m:20, c:randColor(100,60,80,80,0,120),
-              r:9+rand(3),  d:70+rand(5),   v:.008,  a:rand(7), p:'p3b' },
+              r:20+rand(2),  d:160+rand(10),   v:orbVel3*6,  a:rand(7), p:'p3b' },
       m3b2: { m:20, c:randColor(100,60,80,80,0,120),
-              r:8+rand(3),  d:110+rand(5),  v:.004,  a:rand(), p:'p3b' },
+              r:18+rand(3),  d:230+rand(10),  v:orbVel3*3,  a:rand(), p:'p3b' },
       m3b3: { m:20, c:randColor(100,60,80,80,0,120),
-              r:8+rand(3),  d:110+rand(5),  v:.004,  a:3+rand(), p:'p3b' },
+              r:18+rand(3),  d:230+rand(10),  v:orbVel3*3,  a:3+rand(), p:'p3b' },
 
       p3c:  { m:50, c:randColor(100,60,80,80,0,120),
-              r:30+rand(8), d:600+rand(20), v:.0013, a:0+rand() },
+              r:70+rand(15), d:orbDist3+rand(20), v:orbVel3, a:0+rand() },
 
       // Orbit 4
       p4a:  { m:40, c:randColor(100,60,80,80,0,120),
-              r:25+rand(20), d:780+rand(20), v:.001, a:1+rand() },
+              r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:0.0+rand()*.8 },
 
       p4b:  { m:40, c:randColor(100,60,80,80,0,120),
-              r:25+rand(20), d:780+rand(20), v:.001, a:3+rand() },
+              r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:1.5+rand()*.8 },
 
       p4c:  { m:40, c:randColor(100,60,80,80,0,120),
-              r:25+rand(20), d:780+rand(20), v:.001, a:5+rand() }
+              r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:3.0+rand()*.8 },
+
+      p4d:  { m:40, c:randColor(100,60,80,80,0,120),
+              r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:4.5+rand()*.8 }
     },
     biggerPlanetD=0,
     boids = [
@@ -99,10 +107,10 @@ var ctx = c.getContext('2d'),
     // viewC*: the related wanted position to put on the center of the screen.
     // vC*: the current related position to put on the center of the screen.
     vCX=vCY = viewCX=viewCY = scrCX=scrCY = w=h = z=zoom = 0.5,
-    ship = {x:-200, y:-200},
+    ship = null, // see "Initialize Ship"
     shipVX = shipVY = 0,
     shipAlive = true,
-    shipLanded = false,
+    shipLanded = false, shipPlanet = null,
     shipJet = shipRotateJet = false,
     shipRotate = 0, shipRotateV = 0,
     leftArrowIsPressed = rightArrowIsPressed = false,
@@ -121,16 +129,16 @@ function log() { // debug
 } // debug
 
 // Build interface:
-btZ.onclick = function() {
+/*btZ.onclick = function() {
   focus = sun;
   log( h,biggerPlanetD, zoom = h/biggerPlanetD/2.5 )
-};
+};*/
 
 function shipDie(txt, showNow) {
   shipAlive = false;
   if (!showNow) return setTimeout( function(){ shipDie(txt,true) }, 500 );
   focus = sun;
-  zoom = h/biggerPlanetD/2.5;
+  zoom = (h/biggerPlanetD)/2;
   if (!txt) txt = 'You die.'
   deadMsg.innerHTML += txt;
   deadMsg.style.display = 'block';
@@ -184,6 +192,7 @@ setInterval(function() {
     else zoom = 2;
     if ( zoom < 0.5 ) zoom = 0.5;
   }
+  //focus = sun; zoom = (h/biggerPlanetD)/2.1; // debug
 
   // Update planets positions:
   for ( var id in planets ) {
@@ -199,6 +208,15 @@ setInterval(function() {
       p.vy = p.y - oldy;
       //log( '1>', id, p.a, p.v, p.d, p.x )
     }
+  }
+
+  if ( !ship ) {
+    // Initialize Ship
+    ship = {};
+    shipPlanet = planets.p2a;
+    shipRotate = -pi/2;
+    shipLanded = true;
+    focus = ship;
   }
 
   //macro shipLandedX: @1.x + Math.cos(shipRotate)*(@1.r+10)
@@ -363,6 +381,7 @@ setInterval(function() {
     }
   });
 
+  // Adjust camera:
   viewCX = scrCX - focus.x * z;
   viewCY = scrCY - focus.y * z;
   vCX = ( viewCX + vCX*14 ) / 15;
@@ -377,16 +396,18 @@ setInterval(function() {
   //ctx.putImageData(imgDataObj, 0, 0);
   // Sun rays
   // createRadialGradient's first ray must to be 0 for android.
-  var grd = ctx.createRadialGradient(vCX, vCY, 0, vCX, vCY, z*sun.r*4);
+  sunRayZoom = z>.5 ? .45 + z/10 : z;
+  //macro sunRayLength: sunRayZoom*sun.r*3
+  var grd = ctx.createRadialGradient(vCX, vCY, 0, vCX, vCY, sunRayLength);
   grd.addColorStop(0, 'rgb('+sun.c[0]+')');
   grd.addColorStop(0.2, 'rgba('+sun.c[0]+',0.5');
   grd.addColorStop(1, 'rgba(0,0,0,0.5)');
   ctx.fillStyle = grd;
   //ctx.fillStyle = '#F80';
   ctx.beginPath();
-  var timeDif = (Date.now() - start)/6000;
+  var timeDif = (Date.now() - start)/16000;
   for (var i=timeDif; i<timeDif+7; i+=0.314*2) {
-    ctx.arc( vCX, vCY, z*sun.r*4, i,i+0.314 );
+    ctx.arc( vCX, vCY, sunRayLength, i,i+0.314 );
     ctx.lineTo(vCX, vCY);
   }
   ctx.closePath();
@@ -396,11 +417,11 @@ setInterval(function() {
     p = planets[id];
     biggerPlanetD = Math.max( biggerPlanetD, p.d||0 );
     // Planet Bright
-    var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0, //z*p.r/9,
-                                       z*p.x+vCX, z*p.y+vCY, z*p.r*(p==sun?3:2));
+    var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0,
+                                       z*p.x+vCX, z*p.y+vCY, z*p.r*2);
     grd.addColorStop(0, 'rgb('+p.c[1]+')');
-    grd.addColorStop((p==sun?0.32:0.48), 'rgb('+p.c[1]+')');
-    grd.addColorStop((p==sun?0.32:0.48), 'rgba('+p.c[2]+','+(p==sun?0.5:0.2)+')');
+    grd.addColorStop(0.48, 'rgb('+p.c[1]+')');
+    grd.addColorStop(0.48, 'rgba('+p.c[2]+','+(p==sun?0.6:0.3*(z>.5?z:.5))+')');
     grd.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = grd;
     ctx.beginPath();
