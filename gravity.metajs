@@ -151,7 +151,8 @@ function shipDie(txt, showNow) {
   focus = sun;
   zoom = (h/biggerPlanetD)/2;
   if (!txt) txt = 'You die.'
-  deadMsg.innerHTML += txt;
+  deadMsg.innerHTML += txt +
+    '<a class="bt" href="javascript:document.location.reload()">Restart</a>';
   deadMsg.style.display = 'block';
 }
 
@@ -294,7 +295,8 @@ setInterval(function() {
           if (touch < -2) { // Too hard! Explode
             shipDie(
               'You crash in a planet before colonize all start system.'+
-              '<p/>Impact: '+Math.round(touch*-100)+'uF. Maximum is 200uF.'
+              '<p/><strong>Impact: '+
+               Math.round(touch*-100)+'uF.</strong> Maximum is 200uF.'
             );
             explosions.push({ x:ship.x, y:ship.y, r:10 });
           } else {
@@ -304,7 +306,7 @@ setInterval(function() {
                ) {
               shipDie(
                 'You crash in a planet before colonize all start system.'+
-                '<p/>Bad angle.'
+                '<p/><strong>Bad angle.</strong>'
               );
               explosions.push({ x:ship.x, y:ship.y, r:10 });
             } else {
@@ -529,7 +531,7 @@ setInterval(function() {
   if (shipAlive) {
     ctxMap.fillStyle = '#6BF';
     ctxMap.beginPath();
-    ctxMap.arc( mapZ*ship.x+mapCX, mapZ*ship.y+mapCY, 0.9, 0,7 ); //(p==sun?3:0.6)
+    ctxMap.arc( mapZ*ship.x+mapCX, mapZ*ship.y+mapCY, 0.9, 0,7 );
     ctxMap.closePath();
     ctxMap.fill();
     ctxMap.strokeStyle = 'rgba(0,200,200,0.5)';
