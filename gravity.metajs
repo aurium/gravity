@@ -95,15 +95,7 @@ var ctx = c.getContext('2d'),
               r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:4.5+rand()*.8 }
     },
     biggerPlanetD=0,
-    boids = [
-      { o:0, x:-300, y:50,  r:2, vx:-1, vy:-0.8 },
-      { o:0, x:-300, y:-50, r:2, vx:-1, vy:0.8 },
-      { o:0, x:200, y:0,   r:2, vx:1, vy:1 },
-      { o:0, x:250, y:-30, r:2, vx:0, vy:0 },
-      { o:1, x:planets.p1a.x+planets.p1a.r+2, y:planets.p1a.y, r:2, vx:-3, vy:4 },
-      { o:1, x:450, y:-30, r:2, vx:0, vy:0 },
-      { o:1, x:62, y:0, r:2, vx:0, vy:0 }
-    ],
+    boids = [], // see "Initialize Boids"
     sun = planets.sun,
     // zoom: the wanted zoom.
     // z: the current zoom.
@@ -226,11 +218,19 @@ setInterval(function() {
     }
   }
 
+  p = planets;
+  // Initialize Boids
+  log( boids.length ) 
+  if ( boids.length == 0 ) {
+    boids.push( { o:0, x:p.p2a.x, y:p.p2a.y+p.p2a.r*1.2, r:2, vx:0, vy:0 } );
+    boids.push( { o:1, x:p.p3a.x, y:p.p3a.y+p.p3a.r*1.2, r:2, vx:0, vy:0 } );
+  }
+
   if ( !ship ) {
     // Initialize Ship
     log('Initialize Ship'); //debug
     ship = {};
-    shipPlanet = planets.p2a;
+    shipPlanet = p.p2a;
     shipRotate = -pi/2;
     shipLanded = true;
     focus = ship;
@@ -381,14 +381,14 @@ setInterval(function() {
 
     // grow boid
     // TODO: grow only in a planet, limited by its size.
-    if ( b.r <= 2 &&    // not so big
+    if ( b.r <= 3 &&    // not so big
          b.p != sun &&  // not into sun
          distP2P(b.p,b).d < (b.p.r+10) // near to a planet surface
        ) {
       b.r += 0.01;
     }
-    else if ( b.r > 2 &&  // Big enough
-              boidsOnPlanet(b.p).length < b.p.r/5 && // not too many boids in the planet
+    else if ( b.r > 3 &&  // Big enough
+              boidsOnPlanet(b.p).length < b.p.r/6 && // not too many boids in the planet
               rand(4) < -1 // 25% chance to go
             ) {
       // Boid reproduction
@@ -475,7 +475,7 @@ setInterval(function() {
     ctxMap.closePath();
     ctxMap.fill();
   }
-  // Boids
+  // Draw Boids
   //boids.forEach(function(b){
   var totB = boids.length;
   for ( var i=0; i<totB; i++ ) {
