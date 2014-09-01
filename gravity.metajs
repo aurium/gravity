@@ -104,16 +104,16 @@ var ctx = c.getContext('2d'),
               r:70+rand(15), d:orbDist3+rand(20), v:orbVel3, a:0+rand() },
 
       // Orbit 4
-      p4a:  { m:40, c:randColor(100,60,80,80,0,120),
+      p4a:  { m:50, c:randColor(100,60,80,80,0,120),
               r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:0.0+rand()*.8 },
 
-      p4b:  { m:40, c:randColor(100,60,80,80,0,120),
+      p4b:  { m:50, c:randColor(100,60,80,80,0,120),
               r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:1.5+rand()*.8 },
 
-      p4c:  { m:40, c:randColor(100,60,80,80,0,120),
+      p4c:  { m:50, c:randColor(100,60,80,80,0,120),
               r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:3.0+rand()*.8 },
 
-      p4d:  { m:40, c:randColor(100,60,80,80,0,120),
+      p4d:  { m:50, c:randColor(100,60,80,80,0,120),
               r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:4.5+rand()*.8 }
     },
     biggerPlanetD = orbDist4,
