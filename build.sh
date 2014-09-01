@@ -33,3 +33,18 @@ echo "=> $size"
   which espeak &&
   espeak -v mb-br1 -s 150 "o pacote deu $size" &
 ) >/dev/null 2>&1
+
+### Daemon #####################################################################
+
+w=$COLUMNS
+test -z "$w" && w=$(tput cols)
+hr='-'
+while [ ${#hr} -lt $w ]; do
+  hr="-$hr"
+done
+echo $hr
+
+if inotifywait -r "$(dirname $0)" -e CLOSE_WRITE; then #--event CLOSE_WRITE; then
+  sleep 0.3
+  exec $0
+fi
