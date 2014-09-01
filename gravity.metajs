@@ -10,8 +10,36 @@ var log = function() { // debug
     console.log.apply(console,args); // debug
 }; // debug
 
+var biteLimit = function(val) {
+  return val>255 ? 255 : ( val<0 ? 0 : val );
+}
 
 var rand = function(num) { return (Math.random()-0.5) * (num||1) };
+
+var makeAudio = function(length, toneIni, toneEnd, noise, gainFn) {
+  gainFn = {
+    line: function(i,length){ return 1-i/length },
+    triangle: function(i,length){
+      return (i<length/3) ? i/(length/3) : 1-(i-(length/3))/(length*2/3)
+    }
+  }[gainFn||'line'];
+  var toneDelta = toneEnd - toneIni;
+  var data = [];
+  for ( var i=0; i<length; i++ )
+    data.push(biteLimit(
+      Math.sin( i*(toneIni+toneDelta*(i/length))/800 + noise*rand(pi) )
+      * 127 // half value
+      * gainFn(i,length) // increase/decrease amplitude
+      + 127 // move to medium line
+    ));
+  var wav = new RIFFWAVE(data);
+  var player = document.createElement('audio');
+  player.src = wav.dataURI;
+  return player;
+}
+var explosionSound = makeAudio(10000, 150, 50, 1);
+var gunSound = makeAudio(4000, 1500, 600, 0.2, 'triangle');
+
 var randColor = function(mr,vr,mg,vg,mb,vb) {
   var r1 = Math.round( mr + rand(vr) ),
       g1 = Math.round( mg + rand(vg) ),
@@ -22,7 +50,6 @@ var randColor = function(mr,vr,mg,vg,mb,vb) {
       r3 = Math.round( r1*3.6 ),
       g3 = Math.round( g1*3.6 ),
       b3 = Math.round( b1*3.6 );
-      //macro biteLimit: @1 > 255 ? @1=255 : 0
       biteLimit(r2);
       biteLimit(g2);
       biteLimit(b2);
@@ -157,6 +184,7 @@ try {
 };*/
 
 var shipDie = function(txt, showNow) {
+  explosionSound.play();
   shipAlive = false;
   if (!showNow) return setTimeout( function(){ shipDie(txt,true) }, 500 );
   focus = sun;

@@ -25,7 +25,7 @@ sed_script=$(
 sed -r "$sed_script" gravity.metajs > gravity.js
 
 test -e $zip && rm $zip
-zip $zip gravity.js index.html
+zip $zip gravity.js riffwave.js index.html style.css
 
 size="$( ls -lh $zip | sed -r 's/.* ([0-9,.]+K) .*/\1/' )"
 echo "=> $size"
