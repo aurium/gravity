@@ -50,6 +50,41 @@ body {
   right: 0px;
 }
 
+.progress {
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  width: 30%;
+  background: rgba(200,240,255,0.3);
+  box-shadow: inset 0 0 10px rgba(200,240,255,0.5);
+  border-radius: 5px;
+  padding: 1px 3px 1px 1px;
+}
+.progress.weapon {
+  top: 40px;
+}
+
+.progress i {
+  font-size: 12px;
+  font-style: normal;
+  text-indent: 10px;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.6);
+  display: block;
+  width: 100%;
+  line-height: 16px;
+  background: #0BF;
+  box-shadow: inset 0 0 10px #014;
+  border: 1px solid #034;
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+#weapon {
+  background: #FC0;
+  box-shadow: inset 0 0 10px #720;
+  border: 1px solid #720;
+}
+
 b {
   position: fixed;
   bottom: -20px;
