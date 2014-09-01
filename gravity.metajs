@@ -168,7 +168,8 @@ var ctx = c.getContext('2d'),
     focus = ship,
     imgDataObj, imgData, imgDataLength,
     gConst = 0.01, //6.674e-11
-    start = Date.now();
+    now = Date.now,
+    start = now();
 
 try {
   if (document.createEvent("TouchEvent")) {
@@ -296,14 +297,18 @@ var getAngleToPlanet = function(obj, planet) {
   return angleToPlanet % completeRad;
 };
 
+var shipLastExitTripulation=0, shipLastJet=0;
 var releaseTripulation = function() {
-  ship.tripulation.forEach(function(b){
+  var b = ship.tripulation[0];
+  // Has boid AND 1sec no user up AND 1sec last boid leave the ship
+  if ( b && (now()-shipLastJet)>1000 && (now()-shipLastExitTripulation)>1000 ) {
+    shipLastExitTripulation = now();
     b.planet = ship.planet;
     b.r = 2;
     b.rotate = ship.rotate + rand(.5);
     boids.push(b);
-  });
-  ship.tripulation = [];
+    ship.tripulation = ship.tripulation.remove(b);
+  }
 };
 
 var ticCounter = 0, framesPerSec = 30;
@@ -377,7 +382,7 @@ setInterval(function() {
     updatePosition(ship,
       function(p) {
         ship.rotateV = 0;
-        if (boidsOnPlanet(p).length < 3) releaseTripulation();
+        if (boidsOnPlanet(p).length < 4) releaseTripulation();
       },
       {
         15: function(p, proximity) { // Near to the planet
@@ -568,7 +573,7 @@ setInterval(function() {
   ctx.fillStyle = grd;
   //ctx.fillStyle = '#F80';
   ctx.beginPath();
-  var timeDif = (Date.now() - start)/16000;
+  var timeDif = (now() - start)/16000;
   for (var i=timeDif; i<timeDif+7; i+=0.314*2) {
     ctx.arc( vCX, vCY, sunRayLength, i,i+0.314 );
     ctx.lineTo(vCX, vCY);
@@ -777,6 +782,7 @@ d.onclick = function (ev) {
 };
 
 var pressBt = function(bt, on) {
+  shipLastJet = now();
   usrInput[bt] = on;
   window[bt].className = on ? 'pressed' : ''
 };
