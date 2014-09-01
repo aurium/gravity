@@ -426,7 +426,11 @@ setInterval(function() {
       function(p) { // in a planet callback
         // Never stops to walk the surface
         if ( (b.rotateV||0) == 0 ) b.rotateV = .01;
-        if ( abs(b.rotateV) < .002 ) b.rotateV*=1.5;
+        if ( abs(b.rotateV) < .002 ) {
+          // Prevent boids to walk all together, and never touch:
+          if( rand()<-0.49 ) b.rotateV *= -1; // 1% chance to change direction
+          b.rotateV*=1.5;
+        }
         // grow boid
         if ( b.r <= 3 ) { // not so big AND in a planet surface
           b.r += 0.01;
