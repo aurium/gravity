@@ -3,7 +3,7 @@
 try {
 
 var log = function() { // debug
-  var args = [];
+  var args = []; // debug
   for (var i=0; i<arguments.length; i++) args.push(arguments[i]); // debug
   /Android/.test(navigator.userAgent) ? // debug
     0: //alert(args.join(' - ')) : // debug
@@ -75,7 +75,7 @@ var ctx = c.getContext('2d'),
       // Orbit 2
       p2a:  { m:30, c:['0,100,180','0,180,220','50,220,255'],
               r:40, d:orbDist2+rand(50), v:orbVel2, a:0.0+rand()*.8 },
-      m1a1: { m:20, c:['100,100,100','200,200,200','250,250,250'],
+      m2a1: { m:20, c:['100,100,100','200,200,200','250,250,250'],
               r:25,  d:130+rand(10),  v:orbVel1*4,  a:rand(7), p:'p2a' },
 
       p2b:  { m:30, c:randColor(100,60,80,80,0,120),
@@ -116,7 +116,7 @@ var ctx = c.getContext('2d'),
       p4d:  { m:40, c:randColor(100,60,80,80,0,120),
               r:50+rand(20), d:orbDist4+rand(50), v:orbVel4, a:4.5+rand()*.8 }
     },
-    biggerPlanetD=0,
+    biggerPlanetD = orbDist4,
     boids = [], // see "Initialize Boids"
     sun = planets.sun,
     // zoom: the wanted zoom.
@@ -124,8 +124,8 @@ var ctx = c.getContext('2d'),
     // scrC*: the center of the screen, calculated on start and each resize.
     // viewC*: the related wanted position to put on the center of the screen.
     // vC*: the current related position to put on the center of the screen.
-    vCX = 0,
-    vCY = 0,
+    vCX = null,
+    vCY = null,
     viewCX = 0,
     viewCY = 0,
     scrCX = 0,
@@ -168,6 +168,10 @@ var shipDie = function(txt, showNow) {
 };
 
 (window.onresize = function(e) {
+  if (vCX==null) {
+    vCX = planets.p2a.d/2;
+    vCY = planets.p2a.d/2;
+  }
   scrCX = (c.width = w = d.documentElement.clientWidth) / 2;
   scrCY = (c.height = h = d.documentElement.clientHeight) / 2;
   map.cx = (map.width = mapBox.clientWidth - 10) / 2;
@@ -202,12 +206,12 @@ var boidsOnPlanet = function(p) {
   return list;
 };
 
-var removeFromList = function(list, item) {
+Array.prototype.remove = function(item) {
   var newList = [];
-  list.forEach(function(i){
+  this.forEach(function(i){
     if(i!=item) newList.push(i);
   });
-  return list = newList;
+  return newList;
 };
 
 var landingPos = function(obj, p) {
@@ -230,11 +234,11 @@ var updatePosition = function(obj, inPlanet, planetProximation) {
   else { // Object is fling
     for ( var id in planets ) {
       var p = planets[id];
-      var dist = distP2P( p, ship );
+      var dist = distP2P( p, obj );
       // Normal gravity lower to distance. Here never is so far.
       var f = dist.d<999 ? (gConst*p.m)/dist.d : (gConst*p.m)/999;
-      obj.vx += f * dist.x;
-      obj.vy += f * dist.y;
+      obj.vx = (obj.vx||0) + f * dist.x;
+      obj.vy = (obj.vy||0) + f * dist.y;
       var proximity = dist.d - p.r - obj.r;
       for ( var limitDist in planetProximation ) {
         // Near to the planet
@@ -244,6 +248,8 @@ var updatePosition = function(obj, inPlanet, planetProximation) {
   }
   obj.rotate  %= completeRad;
   if (obj.rotate<0) obj.rotate += completeRad;
+  obj.x += obj.vx;
+  obj.y += obj.vy;
 };
 
 var getAngleToPlanet = function(obj, planet) {
@@ -254,7 +260,10 @@ var getAngleToPlanet = function(obj, planet) {
   return angleToPlanet % completeRad;
 };
 
+var ticCounter = 0, framesPerSec = 30;
+
 setInterval(function() {
+  ticCounter++;
   var p, dist;
 
   if ( shipAlive ) {
@@ -286,13 +295,22 @@ setInterval(function() {
   /*** Initializations ********************************************************/
   if ( boids.length == 0 ) {
     log('Initialize Boids'); //debug
-    for (var i=0; i<1; i++)
+    for (var i=0; i<8; i++)
       boids.push({
         o:0, planet:p.p2a, r:1+rand(), rotate:rand(completeRad), rotateV:rand(.01)
       });
     boids.push({ o:1, planet:p.p3a, r:2, rotateV:rand(.01) });
     boids.push({ o:1, planet:p.p3b, r:2, rotateV:rand(.01) });
     boids.push({ o:1, planet:p.p3c, r:2, rotateV:rand(.01) });
+  }
+  if ( ticCounter%(10*framesPerSec) == 0 ) {
+    // Invasion from outer space each 10 secs
+    boids.push({ // the ship will never see it born
+      o: 1, r: 2,
+      x: (ship.x>0 ? -1.2 : 1.2) * biggerPlanetD,
+      y: rand(4000),
+      vy: rand(10)
+    });
   }
 
   if ( !ship ) {
@@ -373,8 +391,6 @@ setInterval(function() {
     ship.rotate  += ship.rotateV;   // Rotation state increased by angular velocity
     ship.rotateV *= 0.99;           // Rotation friction (Yeah... this is a fake space)
   }
-  ship.x += ship.vx;
-  ship.y += ship.vy;
 
   // Update boids positions:
   boids.forEach(function(b){
@@ -401,7 +417,8 @@ setInterval(function() {
       {
         0: function(p, proximity) { // Touch the planet
           if (p == sun) { // Boid die if dropped into sun
-            removeFromList(boids, b);
+            boids = boids.remove(b);
+            explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
           } else { // Boid landed a planet
             b.planet = p;
             b.rotate = getAngleToPlanet(b, p);
@@ -416,8 +433,10 @@ setInterval(function() {
         dist = distP2P(b2,b);
         if ( (dist.d - b.r - b2.r) < 0 ) {
           if (b.o != b2.o) { // Boids conflict. Both die.
-            removeFromList(boids, b);
-            removeFromList(boids, b2);
+            boids = boids.remove(b);
+            boids = boids.remove(b2);
+            explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
+            explosions.push({ x:b2.x, y:b2.y, r:2, inc:.2 });
           } else { // Friend touch
             if (b.planet) { // in a planet
               var inc = b.r/5000 * ( b.rotate<b2.rotate ? 1 : -1 );
@@ -482,7 +501,6 @@ setInterval(function() {
   // Draw Planets
   for ( id in planets ) {
     p = planets[id];
-    biggerPlanetD = Math.max( biggerPlanetD, p.d||0 );
     // Planet Bright
     var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0,
                                        z*p.x+vCX, z*p.y+vCY, z*p.r*2);
@@ -517,22 +535,22 @@ setInterval(function() {
   var totB = boids.length;
   for ( var i=0; i<totB; i++ ) {
     var b = boids[i];
-    var c1 = (100+(i%6)*10), c2 = 0,
-        cl1 = Math.round(220+(i%6)/5), cl2 = 100;
-    if (b.o == 0) {
-      c2 = c1;
-      c1 = 100;
-      cl2 = cl1;
-      cl1 = 160;
+    if ( !b.color ) {
+      var c1 = 40, c2 = -40;
+      if (rand()<0) c1*=-1, c2*=-1;
+      b.color = (b.o == 0) ?
+        randColor(c1/2,40, 90,50, c2,50):
+        randColor(110,50, 40,50, 0,10);
     }
-    ctx.strokeStyle = 'rgb(150,'+cl1+','+cl2+')';
+    ctx.strokeStyle = 'rgb('+b.color[1]+',0.5)';
     ctx.beginPath();
     ctx.moveTo( z*b.x+vCX, z*b.y+vCY );
-    ctx.lineTo( z*b.vx*-20+z*b.x+vCX, z*b.vy*-20+z*b.y+vCY );
+    ctx.lineTo( z*b.vx*-10+z*b.x+vCX, z*b.vy*-10+z*b.y+vCY );
     ctx.closePath();
     ctx.stroke();
     ctx.beginPath();
-    ctx.fillStyle = 'rgb(0,'+c1+','+c2+')';
+    ctx.strokeStyle = 'rgb('+b.color[0]+')';
+    ctx.fillStyle = 'rgb('+b.color[1]+')';
     ctx.arc( z*b.x+vCX, z*b.y+vCY, z*b.r, 0,7 );
     ctx.closePath();
     ctx.fill();
@@ -553,7 +571,7 @@ setInterval(function() {
     e.t = e.t ? e.t+1 : .5;
     ctx.fillStyle = 'rgba(255,255,255,'+(20-e.t)/20+')';
     ctx.beginPath();
-    ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t), 0,7 );
+    ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t*(e.inc||1)), 0,7 );
     ctx.fill();
     if (e.t>19) { // explosion end
       var newList = [];
@@ -662,7 +680,7 @@ setInterval(function() {
     ctx.restore();
   }
 
-}, 30);
+}, 1000/framesPerSec);
 
 d.onclick = function (ev) {
   if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
