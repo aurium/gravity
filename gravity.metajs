@@ -296,6 +296,16 @@ var getAngleToPlanet = function(obj, planet) {
   return angleToPlanet % completeRad;
 };
 
+var releaseTripulation = function() {
+  ship.tripulation.forEach(function(b){
+    b.planet = ship.planet;
+    b.r = 2;
+    b.rotate = ship.rotate + rand(.5);
+    boids.push(b);
+  });
+  ship.tripulation = [];
+};
+
 var ticCounter = 0, framesPerSec = 30;
 
 setInterval(function() {
@@ -353,6 +363,7 @@ setInterval(function() {
     log('Initialize Ship'); //debug
     shipAlive = true;
     ship = {
+      tripulation: [{o:0, r:1, color:randColor(0,40, 90,50, 0,50)}],
       planet: p.p2a,
       rotate: -pi/2,
       r: 10
@@ -366,6 +377,7 @@ setInterval(function() {
     updatePosition(ship,
       function(p) {
         ship.rotateV = 0;
+        if (boidsOnPlanet(p).length < 3) releaseTripulation();
       },
       {
         15: function(p, proximity) { // Near to the planet
@@ -404,6 +416,7 @@ setInterval(function() {
                 explosions.push({ x:ship.x, y:ship.y, r:10 });
               } else {
                 ship.planet = p;
+                releaseTripulation();
               }
             }
           }
@@ -432,12 +445,36 @@ setInterval(function() {
   boids.forEach(function(b){
     updatePosition(b,
       function(p) { // in a planet callback
-        // Never stops to walk the surface
-        if ( (b.rotateV||0) == 0 ) b.rotateV = .01;
-        if ( abs(b.rotateV) < .002 ) {
-          // Prevent boids to walk all together, and never touch:
-          if( rand()<-0.49 ) b.rotateV *= -1; // 1% chance to change direction
-          b.rotateV*=1.5;
+        if ( ship.planet == p ) {
+          // The player ship is in this boid's planet!
+          if (boidsOnPlanet(p).length < 4) {
+            // Too few boids...
+            if ( abs(ship.rotate-b.rotation) < pi/2 ) {
+              // Near to the ship? Run away.
+              b.rotateV += b.rotate<ship.rotate ? -1e-3 : 1e-3;
+            }
+          } else {
+            // Too many boids. Get the ship!
+            b.rotateV += b.rotate<ship.rotate ? 1e-4 : -1e-4;
+          }
+          if (
+               abs(ship.rotate-b.rotate) < .01 &&  // boid is above the ship
+               b.o == 0 &&                         // is one of the player's boid
+               ship.tripulation.length < 3         // there is room for it
+             ) {
+            log('Go!', ship.tripulation);
+            ship.tripulation.push(b);
+            boids = boids.remove(b);
+          }
+        } else {
+          // No ship here... boring life...
+          // Never stops to walk the surface
+          if ( (b.rotateV||0) == 0 ) b.rotateV = .01;
+          if ( abs(b.rotateV) < .002 ) {
+            // Prevent boids to walk all together, and never touch:
+            if( rand()<-0.49 ) b.rotateV *= -1; // 1% chance to change direction
+            b.rotateV*=1.5;
+          }
         }
         // grow boid
         if ( b.r <= 3 ) { // not so big AND in a planet surface
@@ -588,7 +625,7 @@ setInterval(function() {
         randColor(c1/2,40, 90,50, c2,50):
         randColor(110,50, 40,50, 0,10);
     }
-    ctx.strokeStyle = 'rgb('+b.color[1]+',0.5)';
+    ctx.strokeStyle = 'rgba('+b.color[1]+',0.6)';
     ctx.beginPath();
     ctx.moveTo( z*b.x+vCX, z*b.y+vCY );
     ctx.lineTo( z*b.vx*-10+z*b.x+vCX, z*b.vy*-10+z*b.y+vCY );
@@ -711,18 +748,24 @@ setInterval(function() {
     // Staff Boids
     ctx.lineWidth = 1/(z+1/2);
     ctx.strokeStyle = '#181';
-    ctx.fillStyle = '#6D3';
-    ctx.beginPath();
-    //ctx.arc( -8,0, 4, 0,7 );
-    //ctx.moveTo(4,0);
-    ctx.arc( -4,0, 2, 0,7 );
-    ctx.moveTo(2,0);
-    ctx.arc( 0,0, 2, 0,7 );
-    ctx.moveTo(6,0);
-    ctx.arc( 4,0, 2, 0,7 );
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    var drawTripulation = function(pos) {
+      var t = ship.tripulation;
+      ctx.beginPath();
+      ctx.fillStyle = t[pos] ? 'rgb('+t[pos].color[1]+')' : '#888';
+      ctx.arc( -4+(pos*4),0, 2, 0,7 );
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    }
+    drawTripulation(0);
+    drawTripulation(1);
+    drawTripulation(2);
+    /*var t = ship.tripulation;
+    ctx.beginPath(); ctx.fillStyle = t[0] ? 'rgb('+t[0].color[1]+')' : '#888';
+    ctx.arc( -4,0, 2, 0,7 ); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.fillStyle = t[1] ? t[1].color[1] : '#888';
+    ctx.arc(  0,0, 2, 0,7 ); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.fillStyle = t[2] ? t[2].color[1] : '#888';
+    ctx.arc(  4,0, 2, 0,7 ); ctx.closePath(); ctx.fill(); ctx.stroke();*/
     ctx.restore();
   }
 
