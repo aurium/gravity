@@ -234,6 +234,14 @@ var boidsOnPlanet = function(p) {
   return list;
 };
 
+var ownerOfPlanet = function(p) {
+  var boids = boidsOnPlanet(p);
+  if (boids.length==0) return -1;
+  var owner = boids[0].o;
+  boids.forEach(function(b){ owner = (owner+b.o)/2 });
+  return owner;
+};
+
 Array.prototype.remove = function(item) {
   var newList = [];
   this.forEach(function(i){
@@ -556,7 +564,13 @@ setInterval(function() {
     ctx.closePath();
     ctx.fill();
     // Planet on the map
-    ctxMap.fillStyle = p==sun? '#FF7' : 'rgba(220,220,220,1)';
+    var owner = ownerOfPlanet(p);
+    var ownerColor;
+    if (owner == -1)     ownerColor = 'rgb(220,220,220)';
+    else if (owner == 0) ownerColor = 'rgb(50,240,50)';
+    else if (owner == 1) ownerColor = 'rgb(240,100,50)';
+    else ownerColor = 'rgb(255,0,255)';
+    ctxMap.fillStyle = p==sun? '#FF7' : ownerColor;
     ctxMap.beginPath();
     ctxMap.arc( mapZ*p.x+map.cx, mapZ*p.y+map.cy, mapZ*p.r, 0,7 ); //(p==sun?3:0.6)
     ctxMap.closePath();
