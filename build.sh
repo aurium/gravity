@@ -44,7 +44,7 @@ while [ ${#hr} -lt $w ]; do
 done
 echo $hr
 
-if inotifywait -r "$(dirname $0)" -e CLOSE_WRITE; then #--event CLOSE_WRITE; then
+if inotifywait -r "$(dirname "$0")" -e CLOSE_WRITE; then #--event CLOSE_WRITE; then
   sleep 0.3
-  exec $0
+  exec "$0"
 fi
