@@ -35,6 +35,8 @@ body {
   overflow: hidden;
 }
 .touchable #mapBox {
+  width: 350px;
+  height: 300px;
   background: rgba(0,40,70,0.2);
   box-shadow: inset 1px -1px 20px -1px rgba(0,200,255,0.1);
 }
@@ -60,23 +62,31 @@ body {
   border-radius: 5px;
   padding: 1px 3px 1px 1px;
 }
-.progress.weapon {
-  top: 40px;
-}
+.progress.weapon { top: 40px }
+.pix15 .progress.weapon { top: 43px }
+.pix20 .progress.weapon { top: 46px }
 
 .progress i {
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 14px;
   font-style: normal;
   text-indent: 10px;
   text-shadow: 1px 1px 0 rgba(255,255,255,0.6);
   display: block;
   width: 100%;
-  line-height: 16px;
   background: #0BF;
   box-shadow: inset 0 0 10px #014;
   border: 1px solid #034;
   border-radius: 4px;
   opacity: 0.6;
+}
+.pix15 .progress i {
+  font-size: 14px;
+  line-height: 17px;
+}
+.pix20 .progress i {
+  font-size: 18px;
+  line-height: 20px;
 }
 
 #weapon {
@@ -96,26 +106,12 @@ b {
   text-align: center;
 }
 
-/*#btZ {
-  top: -10px; left: -10px;
-  bottom: auto;
-  padding: 25px 25px 25px 25px;
-  border-radius: 0 0 50px 0;
-  color: rgba(0,200,255,0.5);
-  background: rgba(0,0,0,0.3);
-  box-shadow: inset -5px -5px 30px rgba(0,255,255,0.2);
-  text-shadow: 0 0 9px rgba(0,255,255,0.6);
-}
-#btZ:hover {
-  background: rgba(0,200,255,0.3);
-}*/
-
 #btU, #btL, #btR {
-  font-size: 30px;
-  color: rgba(255,255,255,0.7);
+  font-size: 60px;
+  color: rgba(255,255,255,0.3);
   background: rgba(0,0,0,0.3);
-  box-shadow: inset 0 0 30px rgba(255,255,255,0.2);
-  text-shadow: 0 0 9px rgba(255,255,255,0.9);
+  box-shadow: inset 0 0 90px rgba(255,255,255,0.3);
+  text-shadow: 0 0 15px rgba(255,255,255,0.9);
   display: none;
 }
 #btU.pressed, #btL.pressed, #btR.pressed {
@@ -127,20 +123,20 @@ b {
 #btU {
   left: 25%;
   right: 25%;
-  padding: 20px 0 30px 0;
-  border-radius: 60px 60px 0 0;
+  padding: 30px 0 40px 0;
+  border-radius: 95px 95px 0 0;
 }
 #btL {
-  left: -20px;
+  left: -40px;
   right: 77%;
-  padding: 40px 0 30px 0;
-  border-radius: 0 90px 0 0;
+  padding: 70px 0 40px 0;
+  border-radius: 0 150px 0 0;
 }
 #btR {
-  right: -20px;
+  right: -40px;
   left: 77%;
-  padding: 40px 0 30px 0;
-  border-radius: 90px 0 0 0;
+  padding: 70px 0 40px 0;
+  border-radius: 150px 0 0 0;
 }
 #btU:before { content: "⇑" }
 #btL:before { content: "↺" }

@@ -169,7 +169,15 @@ var ctx = c.getContext('2d'),
     imgDataObj, imgData, imgDataLength,
     gConst = 0.01, //6.674e-11
     now = Date.now,
-    start = now();
+    start = now(),
+    pixelRatio = window.devicePixelRatio;
+
+
+viewport.setAttribute('content',
+  'width=device-width, user-scalable=no, initial-scale=' + (1/pixelRatio)
+);
+if ( pixelRatio >= 2 ) b.className += ' pix20';
+else if ( pixelRatio > 1 ) b.className += ' pix15';
 
 try {
   if (document.createEvent("TouchEvent")) {
@@ -177,12 +185,6 @@ try {
     touchable = true;
   }
 } catch(e) { }
-
-// Build interface:
-/*btZ.onclick = function() {
-  focus = sun;
-  log( h,biggerPlanetD, zoom = h/biggerPlanetD/2.5 )
-};*/
 
 var shipDie = function(txt, showNow) {
   explosionSound.play();
