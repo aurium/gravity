@@ -348,7 +348,7 @@ setInterval(function() {
   /*** Initializations ********************************************************/
   if ( boids.length == 0 ) {
     log('Initialize Boids'); //debug
-    for (var i=0; i<8; i++)
+    for (var i=0; i<13; i++)
       boids.push({
         o:0, planet:p.p2a, r:1+rand(), rotate:rand(completeRad), rotateV:rand(.01)
       });
