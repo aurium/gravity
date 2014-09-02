@@ -27,7 +27,7 @@ var makeAudio = function(length, toneIni, toneEnd, noise, gainFn) {
   var data = [];
   for ( var i=0; i<length; i++ )
     data.push(biteLimit(
-      Math.sin( i*(toneIni+toneDelta*(i/length))/800 + noise*rand(pi) )
+      sin( i*(toneIni+toneDelta*(i/length))/800 + noise*rand(pi) )
       * 127 // half value
       * gainFn(i,length) // increase/decrease amplitude
       + 127 // move to medium line
@@ -37,8 +37,6 @@ var makeAudio = function(length, toneIni, toneEnd, noise, gainFn) {
   player.src = wav.dataURI;
   return player;
 }
-var explosionSound = makeAudio(10000, 150, 50, 1);
-var gunSound = makeAudio(4000, 1500, 600, 0.2, 'triangle');
 
 var randColor = function(mr,vr,mg,vg,mb,vb) {
   var r1 = Math.round( mr + rand(vr) ),
@@ -74,6 +72,8 @@ var ctx = c.getContext('2d'),
     b = d.body,
     touchable = false,
     abs = Math.abs,
+    sin = Math.sin,
+    cos = Math.cos,
     pi = Math.PI,
     completeRad = 2 * pi, // complete revolution
     deg90 = pi/2,
@@ -145,6 +145,7 @@ var ctx = c.getContext('2d'),
     },
     biggerPlanetD = orbDist4,
     boids = [], // see "Initialize Boids"
+    missiles = [],
     sun = planets.sun,
     // zoom: the wanted zoom.
     // z: the current zoom.
@@ -168,9 +169,11 @@ var ctx = c.getContext('2d'),
     focus = ship,
     imgDataObj, imgData, imgDataLength,
     gConst = 0.01, //6.674e-11
+    explosionSound = makeAudio(10000, 150, 50, 1),
+    gunSound = makeAudio(4000, 1500, 600, 0.2, 'triangle'),
+    pixelRatio = window.devicePixelRatio,
     now = Date.now,
-    start = now(),
-    pixelRatio = window.devicePixelRatio;
+    start = now();
 
 
 viewport.setAttribute('content',
@@ -255,8 +258,8 @@ Array.prototype.remove = function(item) {
 
 var landingPos = function(obj, p) {
   return {
-    x: p.x + Math.cos(obj.rotate)*(p.r+obj.r),
-    y: p.y + Math.sin(obj.rotate)*(p.r+obj.r)
+    x: p.x + cos(obj.rotate)*(p.r+obj.r),
+    y: p.y + sin(obj.rotate)*(p.r+obj.r)
   }
 };
 
@@ -266,8 +269,8 @@ var updatePosition = function(obj, inPlanet, planetProximation) {
     obj.vx = obj.vy = 0;
     obj.rotateV = (obj.rotateV||0) * 0.99;
     obj.rotate = (obj.rotate||0) + obj.rotateV;
-    obj.x = p.x + Math.cos(obj.rotate||0)*(p.r+obj.r);
-    obj.y = p.y + Math.sin(obj.rotate||0)*(p.r+obj.r);
+    obj.x = p.x + cos(obj.rotate||0)*(p.r+obj.r);
+    obj.y = p.y + sin(obj.rotate||0)*(p.r+obj.r);
     inPlanet(p);
   }
   else { // Object is fling
@@ -281,7 +284,8 @@ var updatePosition = function(obj, inPlanet, planetProximation) {
       var proximity = dist.d - p.r - obj.r;
       for ( var limitDist in planetProximation ) {
         // Near to the planet
-        if (proximity <= limitDist) planetProximation[limitDist](p, proximity);
+        if (proximity <= parseInt(limitDist))
+          planetProximation[limitDist](p, proximity);
       }
     }
   }
@@ -313,6 +317,18 @@ var releaseTripulation = function() {
   }
 };
 
+var newMissile = function(o, x,y, vx,vy) {
+  var m = {o:o,  x:x, y:y, r:4,
+    vx: vx + cos(ship.rotate) * 2,
+    vy: vy + sin(ship.rotate) * 2
+  };
+  missiles.push(m);
+  return m;
+}
+
+//TODO: var newBoid
+//TODO: var newExplosion
+
 var ticCounter = 0, framesPerSec = 30;
 
 setInterval(function() {
@@ -335,8 +351,8 @@ setInterval(function() {
     } else {
       p.a += p.v;
       var oldx = p.x, oldy = p.y;
-      p.x = Math.cos(p.a)*p.d + planets[p.p||'sun'].x;
-      p.y = Math.sin(p.a)*p.d + planets[p.p||'sun'].y;
+      p.x = cos(p.a)*p.d + planets[p.p||'sun'].x;
+      p.y = sin(p.a)*p.d + planets[p.p||'sun'].y;
       p.vx = p.x - oldx;
       p.vy = p.y - oldy;
       //log( '1>', id, p.a, p.v, p.d, p.x )
@@ -371,6 +387,7 @@ setInterval(function() {
     shipAlive = true;
     ship = {
       tripulation: [{o:0, r:1, color:randColor(0,40, 90,50, 0,50)}],
+      weapon: true,
       planet: p.p2a,
       rotate: -pi/2,
       r: 10
@@ -432,12 +449,12 @@ setInterval(function() {
     );
     if (usrInput.btU) {
       if (ship.planet) {
-        ship.vx = Math.cos(ship.rotate) * 0.2 + ship.planet.vx;
-        ship.vy = Math.sin(ship.rotate) * 0.2 + ship.planet.vy;
+        ship.vx = cos(ship.rotate) * 0.2 + ship.planet.vx;
+        ship.vy = sin(ship.rotate) * 0.2 + ship.planet.vy;
         ship.planet = false;
       } else {
-        ship.vx += Math.cos(ship.rotate) * 0.1;
-        ship.vy += Math.sin(ship.rotate) * 0.1;
+        ship.vx += cos(ship.rotate) * 0.1;
+        ship.vy += sin(ship.rotate) * 0.1;
       }
     }
     if ( usrInput.btL ) ship.rotateJet = -0.01;
@@ -447,6 +464,31 @@ setInterval(function() {
     ship.rotate  += ship.rotateV;   // Rotation state increased by angular velocity
     ship.rotateV *= 0.99;           // Rotation friction (Yeah... this is a fake space)
   }
+
+  // Update missiles
+  missiles.forEach(function(m) {
+    updatePosition(m, function(){},
+      {
+        2: function(p, proximity) { // Touch the planet
+          explosionSound.play();
+          missiles = missiles.remove(m);
+          explosions.push({ x:m.x, y:m.y, r:25 });
+          // Kill near boids
+          boids.forEach(function(b){
+            if ( distP2P(m,b).d < 40 ) {
+              boids = boids.remove(b);
+              explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
+            }
+          });
+        }
+      }
+    );
+    m.t = (m.t||0)+1;
+    if ( m.t > 1000 ) { // to much time. Die now.
+      missiles = missiles.remove(m);
+      explosions.push({ x:m.x, y:m.y, r:4 });
+    }
+  });
 
   // Update boids positions:
   boids.forEach(function(b){
@@ -633,17 +675,20 @@ setInterval(function() {
         randColor(110,50, 40,50, 0,10);
     }
     ctx.strokeStyle = 'rgba('+b.color[1]+',0.6)';
+    // Velocity tail
     ctx.beginPath();
     ctx.moveTo( z*b.x+vCX, z*b.y+vCY );
     ctx.lineTo( z*b.vx*-10+z*b.x+vCX, z*b.vy*-10+z*b.y+vCY );
     ctx.closePath();
     ctx.stroke();
+    // Boid body
     ctx.beginPath();
     ctx.strokeStyle = 'rgb('+b.color[0]+')';
     ctx.fillStyle = 'rgb('+b.color[1]+')';
     ctx.arc( z*b.x+vCX, z*b.y+vCY, z*b.r, 0,7 );
     ctx.closePath();
     ctx.fill();
+    ctx.lineWidth = 0.8*z;
     ctx.stroke();
 
     /*
@@ -656,20 +701,26 @@ setInterval(function() {
   }
   //});
 
+  // Draw missiles
+  missiles.forEach(function(m) {
+    ctx.fillStyle = 'rgb(255,'+Math.round((sin(ticCounter/2)+1)*127)+',0)';
+    ctx.strokeStyle = 'rgb(255,'+Math.round((cos(ticCounter/2)+1)*127)+',0)';
+    ctx.beginPath();
+    ctx.arc( z*m.x+vCX, z*m.y+vCY, z*m.r-1, 0,7 );
+    ctx.fill();
+    ctx.lineWidth = 1.5*z;
+    ctx.stroke();
+  });
+
   // Draw explosions
   explosions.forEach(function(e) {
+    // TODO: update explosion position with origin vx,vy
     e.t = e.t ? e.t+1 : .5;
     ctx.fillStyle = 'rgba(255,255,255,'+(20-e.t)/20+')';
     ctx.beginPath();
     ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t*(e.inc||1)), 0,7 );
     ctx.fill();
-    if (e.t>19) { // explosion end
-      var newList = [];
-      explosions.forEach(function(e2){
-        if( e2 != e ) newList.push(e2);
-      });
-      explosions = newList;
-    }
+    if (e.t>19) explosions = explosions.remove(e); // explosion end
   });
 
   // Draw Ship
@@ -789,11 +840,31 @@ var pressBt = function(bt, on) {
   window[bt].className = on ? 'pressed' : ''
 };
 
+var fireWeapon = function () {
+  if ( ship.weapon ) {
+    btW.className = 'empty';
+    ship.weapon = false;
+    newMissile(0, ship.x, ship.y,
+      ship.vx + cos(ship.rotate) * 2,
+      ship.vy + sin(ship.rotate) * 2
+    );
+    gunSound.play();
+    setTimeout(function(){
+      btW.className = '';
+      ship.weapon = true;
+    }, 1000 * 5/*seconds*/);
+  }
+};
+
+var pressDialogBt = function () {
+};
+
 d.onkeydown = function (ev) {
   switch (ev.keyCode) {
     case 38: pressBt('btU', true); break;
     case 37: pressBt('btL', true); break;
     case 39: pressBt('btR', true); break;
+    case 32: fireWeapon(); break;
   }
 };
 
@@ -802,12 +873,14 @@ d.onkeyup = function (ev) {
     case 38: pressBt('btU', false); break;
     case 37: pressBt('btL', false); break;
     case 39: pressBt('btR', false); break;
+    case 13: pressDialogBt(); break;
   }
 };
 
 btL.addEventListener("touchstart", function(){ pressBt('btL', true) });
 btR.addEventListener("touchstart", function(){ pressBt('btR', true) });
 btU.addEventListener("touchstart", function(){ pressBt('btU', true) });
+btW.addEventListener("touchstart", function(){ fireWeapon() });
 btL.addEventListener("touchend", function(){ pressBt('btL', false) });
 btR.addEventListener("touchend", function(){ pressBt('btR', false) });
 btU.addEventListener("touchend", function(){ pressBt('btU', false) });

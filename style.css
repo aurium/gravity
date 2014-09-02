@@ -62,9 +62,11 @@ body {
   border-radius: 5px;
   padding: 1px 3px 1px 1px;
 }
+/*
 .progress.weapon { top: 40px }
 .pix15 .progress.weapon { top: 43px }
 .pix20 .progress.weapon { top: 46px }
+*/
 
 .progress i {
   font-size: 11px;
@@ -89,11 +91,11 @@ body {
   line-height: 20px;
 }
 
-#weapon {
+/*#weapon {
   background: #FC0;
   box-shadow: inset 0 0 10px #720;
   border: 1px solid #720;
-}
+}*/
 
 b {
   position: fixed;
@@ -141,6 +143,35 @@ b {
 #btU:before { content: "⇑" }
 #btL:before { content: "↺" }
 #btR:before { content: "↻" }
+
+#btW {
+  bottom: 30px;
+  left: 30px;
+  padding: 50px;
+  font-size: 130px;
+  line-height: 170px;
+  border-radius: 40px;
+  background: rgba(55,155,255,0.3);
+  box-shadow: inset 0 0 30px rgba(55,155,255,0.5);
+  transition: 2s;
+  opacity: 1;
+}
+.touchable #btW {
+  bottom: 220px;
+}
+#btW.empty {
+  transition: 0.3s;
+  opacity: 0;
+}
+#btW i {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 40px;
+  background: #FF0;
+  box-shadow: inset 0 0 30px #B05;
+  border: 3px solid #FF0;
+}
 
 #deadMsg {
   display: none;
