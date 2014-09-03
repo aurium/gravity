@@ -526,18 +526,18 @@ setInterval(function() {
           }
         }
         // grow boid
-        if ( b.r <= 3 ) { // not so big AND in a planet surface
-          b.r += 0.01;
+        if ( b.r <= 2 ) { // not so big for any planet
+          b.r += 0.001;
         }
-        else if ( b.r > 3 &&                           // Big enough
-                  boidsOnPlanet(p).length < p.r/6 &&   // not too many
-                  rand(4) < -1                         // 25% chance to go
-                ) {
-          // Boid reproduction
-          b.r = 1.5;
-          boids.push({
-            o: b.o, r: 1+rand(.5), planet: p, rotate: b.rotate+rand(.001)
-          });
+        else if ( boidsOnPlanet(p).length < p.r/6 ) { // not too many
+          // only still growing an reproduct if there is space
+          if ( b.r <= 3 ) b.r += 0.001;
+          else if ( rand() < -.49 ) { // 1% chance for reproduction
+            b.r = 1.5;
+            boids.push({
+              o: b.o, r: 1+rand(.5), planet: p, rotate: b.rotate+rand(.001)
+            });
+          }
         }
       },
       {
