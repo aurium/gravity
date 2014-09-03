@@ -78,6 +78,7 @@ var ctx = c.getContext('2d'),
     completeRad = 2 * pi, // complete revolution
     deg90 = pi/2,
     turn3 = completeRad/3,
+    secs = function(num) { return num*1000 },
     //macro orbDist1: 500
     //macro orbDist2: 900
     //macro orbDist3: 1400
@@ -303,12 +304,22 @@ var getAngleToPlanet = function(obj, planet) {
   return angleToPlanet % completeRad;
 };
 
+var addTripulation = function(b) {
+  ship.tripulation.push(b);
+  boids = boids.remove(b);
+  b.shipIO = now();
+};
+
 var shipLastExitTripulation=0, shipLastJet=0;
 var releaseTripulation = function() {
   var b = ship.tripulation[0];
   // Has boid AND 1sec no user up AND 1sec last boid leave the ship
-  if ( b && (now()-shipLastJet)>1000 && (now()-shipLastExitTripulation)>1000 ) {
+  if ( b && (now()-shipLastJet)>secs(1) &&
+       shipLastJet>b.shipIO &&
+       (now()-shipLastExitTripulation)>secs(.5)
+     ) {
     shipLastExitTripulation = now();
+    b.shipIO = now();
     b.planet = ship.planet;
     b.r = 2;
     b.rotate = ship.rotate + rand(.5);
@@ -326,8 +337,32 @@ var newMissile = function(o, x,y, vx,vy) {
   return m;
 }
 
-//TODO: var newBoid
+var newBoid = function(o, r, x,y, vx,vy, rotate, planet, pushToList) {
+  var c1 = 40, c2 = -40;
+  if (rand()<0) c1*=-1, c2*=-1;
+  var b = {
+    o: o, r: (r||1+rand()),
+    x: (x||0), y: (y||0),
+    vx: (vx||0), vy: (vy||0),
+    planet:  planet,
+    rotate:  (rotate||rand(completeRad)),
+    rotateV: rand(.01),
+    shipIO:  now()-secs(5),
+    color: (o == 0) ?
+      randColor(c1/2,40, 90,50, c2,50) :
+      randColor(110,50, 40,50, 0,10)
+  };
+  if (pushToList!==false) boids.push(b);
+  return b;
+}
+
 //TODO: var newExplosion
+
+var msgToUsr = function(msg) {
+  msgBox.innerHTML = msg;
+  msgBox.className = 'visible';
+  setTimeout( function(){ msgBox.className='' }, 500 );
+};
 
 var ticCounter = 0, framesPerSec = 30;
 
@@ -365,28 +400,22 @@ setInterval(function() {
   if ( boids.length == 0 ) {
     log('Initialize Boids'); //debug
     for (var i=0; i<13; i++)
-      boids.push({
-        o:0, planet:p.p2a, r:1+rand(), rotate:rand(completeRad), rotateV:rand(.01)
-      });
-    boids.push({ o:1, planet:p.p3a, r:2, rotateV:rand(.01) });
-    boids.push({ o:1, planet:p.p3b, r:2, rotateV:rand(.01) });
-    boids.push({ o:1, planet:p.p3c, r:2, rotateV:rand(.01) });
+      newBoid(0, 1+rand(), 0,0, 0,0, null, p.p2a)
+    newBoid(1, 3, 0,0, 0,0, null, p.p3a);
+    newBoid(1, 3, 0,0, 0,0, null, p.p3b);
+    newBoid(1, 3, 0,0, 0,0, null, p.p3c);
   }
   if ( ticCounter%(10*framesPerSec) == 0 ) {
     // Invasion from outer space each 10 secs
-    boids.push({ // the ship will never see it born
-      o: 1, r: 2,
-      x: (ship.x>0 ? -1.2 : 1.2) * biggerPlanetD,
-      y: rand(4000),
-      vy: rand(10)
-    });
+    // the ship will never see it born
+    newBoid(1, 2, (ship.x>0?-1.2:1.2)*biggerPlanetD, rand(4000), 0, rand(10));
   }
 
   if ( !ship ) {
     log('Initialize Ship'); //debug
     shipAlive = true;
     ship = {
-      tripulation: [{o:0, r:1, color:randColor(0,40, 90,50, 0,50)}],
+      tripulation: [newBoid(0, 2, 0,0, 0,0, null, null, false)],
       weapon: true,
       planet: p.p2a,
       rotate: -pi/2,
@@ -401,7 +430,8 @@ setInterval(function() {
     updatePosition(ship,
       function(p) {
         ship.rotateV = 0;
-        if (boidsOnPlanet(p).length < 4) releaseTripulation();
+        if (boidsOnPlanet(p).length < 5) releaseTripulation();
+        else if (ownerOfPlanet(p)>0) msgToUsr('Are you crazy? We will die!');
       },
       {
         15: function(p, proximity) { // Near to the planet
@@ -496,24 +526,24 @@ setInterval(function() {
       function(p) { // in a planet callback
         if ( ship.planet == p ) {
           // The player ship is in this boid's planet!
-          if (boidsOnPlanet(p).length < 4) {
-            // Too few boids...
-            if ( abs(ship.rotate-b.rotation) < pi/2 ) {
-              // Near to the ship? Run away.
-              b.rotateV += b.rotate<ship.rotate ? -1e-3 : 1e-3;
-            }
-          } else {
-            // Too many boids. Get the ship!
+          if ( 
+               ( boidsOnPlanet(p).length < 4        // Too few boids here...
+               || (now()-b.shipIO) < secs(5) )      // Exit the ship right now
+               && abs(ship.rotate-b.rotate) < pi/2  // Near to the ship?
+             ) { // Run away!
+            b.rotateV += b.rotate<ship.rotate ? -2e-4 : 2e-4;
+          } else if (boidsOnPlanet(p).length > 3) { // Get the ship!
             b.rotateV += b.rotate<ship.rotate ? 1e-4 : -1e-4;
+          } else {
+            b.rotateV += b.rotate<ship.rotate ? -1e-5 : 1e-5;
           }
           if (
                abs(ship.rotate-b.rotate) < .01 &&  // boid is above the ship
-               b.o == 0 &&                         // is one of the player's boid
-               ship.tripulation.length < 3         // there is room for it
+               b.o == 0 &&                         // is one of the player's boids
+               ship.tripulation.length < 3 &&      // there is room for it
+               (now()-b.shipIO) > secs(3)          // Was not in the ship
              ) {
-            log('Go!', ship.tripulation);
-            ship.tripulation.push(b);
-            boids = boids.remove(b);
+            addTripulation(b);
           }
         } else {
           // No ship here... boring life...
@@ -527,16 +557,14 @@ setInterval(function() {
         }
         // grow boid
         if ( b.r <= 2 ) { // not so big for any planet
-          b.r += 0.001;
+          b.r += b.o==0 ? 0.004 : 0.003;
         }
         else if ( boidsOnPlanet(p).length < p.r/6 ) { // not too many
           // only still growing an reproduct if there is space
-          if ( b.r <= 3 ) b.r += 0.001;
+          if ( b.r <= 3 ) b.r += 0.003;
           else if ( rand() < -.49 ) { // 1% chance for reproduction
             b.r = 1.5;
-            boids.push({
-              o: b.o, r: 1+rand(.5), planet: p, rotate: b.rotate+rand(.001)
-            });
+            newBoid(b.o, 1+rand(.5), 0,0, 0,0, b.rotate+rand(.001), p);
           }
         }
       },
@@ -667,13 +695,6 @@ setInterval(function() {
   var totB = boids.length;
   for ( var i=0; i<totB; i++ ) {
     var b = boids[i];
-    if ( !b.color ) {
-      var c1 = 40, c2 = -40;
-      if (rand()<0) c1*=-1, c2*=-1;
-      b.color = (b.o == 0) ?
-        randColor(c1/2,40, 90,50, c2,50):
-        randColor(110,50, 40,50, 0,10);
-    }
     ctx.strokeStyle = 'rgba('+b.color[1]+',0.6)';
     // Velocity tail
     ctx.beginPath();
@@ -852,7 +873,7 @@ var fireWeapon = function () {
     setTimeout(function(){
       btW.className = '';
       ship.weapon = true;
-    }, 1000 * 5/*seconds*/);
+    }, secs(5));
   }
 };
 
