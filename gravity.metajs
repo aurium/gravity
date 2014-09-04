@@ -746,6 +746,11 @@ setInterval(function() {
     ctx.fill();
     ctx.lineWidth = 1.5*z;
     ctx.stroke();
+    ctxMap.fillStyle = ctx.fillStyle;
+    ctxMap.beginPath();
+    ctxMap.arc( mapZ*m.x+map.cx, mapZ*m.y+map.cy, mapZ*m.r*4, 0,7 );
+    ctxMap.closePath();
+    ctxMap.fill();
   });
 
   // Draw Ship
