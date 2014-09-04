@@ -874,8 +874,8 @@ var fireWeapon = function () {
     btW.className = 'empty';
     ship.weapon = false;
     newMissile(0, ship.x, ship.y,
-      ship.vx + cos(ship.rotate) * 2,
-      ship.vy + sin(ship.rotate) * 2
+      (ship.planet ? ship.planet.vx : ship.vx) + cos(ship.rotate) * 2,
+      (ship.planet ? ship.planet.vy : ship.vy) + sin(ship.rotate) * 2
     );
     gunSound.play();
     setTimeout(function(){
