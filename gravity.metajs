@@ -428,7 +428,7 @@ setInterval(function() {
   /*** Updates ****************************************************************/
   if (ship.life < 0) ship.life = 0;
   life.style.width = ship.life + '%';
-  ship.life += .01;
+  if (shipAlive) ship.life += .01;
   if (ship.life > 100) ship.life = 100;
 
   // Update ship position:
@@ -547,11 +547,18 @@ setInterval(function() {
           }
           if (
                abs(ship.rotate-b.rotate) < .01 &&  // boid is above the ship
-               b.o == 0 &&                         // is one of the player's boids
                ship.tripulation.length < 3 &&      // there is room for it
                (now()-b.shipIO) > secs(3)          // Was not in the ship
              ) {
-            addTripulation(b);
+            if ( b.o == 0 ) addTripulation(b); // is one of the player's boids
+            else if ( shipAlive ) { // enemy boid attacks the ship
+              ship.life -= 1;
+              explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
+              if (ship.life < 0) shipDie(
+                'Enemy boids has destroyed your ship.'
+              );
+              else msgToUsr('Enemy boids are attacking the ship!');
+            }
           }
         } else {
           // No ship here... boring life...
@@ -741,17 +748,6 @@ setInterval(function() {
     ctx.stroke();
   });
 
-  // Draw explosions
-  explosions.forEach(function(e) {
-    // TODO: update explosion position with origin vx,vy
-    e.t = e.t ? e.t+1 : .5;
-    ctx.fillStyle = 'rgba(255,255,255,'+(20-e.t)/20+')';
-    ctx.beginPath();
-    ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t*(e.inc||1)), 0,7 );
-    ctx.fill();
-    if (e.t>19) explosions = explosions.remove(e); // explosion end
-  });
-
   // Draw Ship
   if (shipAlive) {
     ctxMap.fillStyle = '#6BF';
@@ -855,6 +851,17 @@ setInterval(function() {
     ctx.arc(  4,0, 2, 0,7 ); ctx.closePath(); ctx.fill(); ctx.stroke();*/
     ctx.restore();
   }
+
+  // Draw explosions
+  explosions.forEach(function(e) {
+    // TODO: update explosion position with origin vx,vy
+    e.t = e.t ? e.t+1 : .5;
+    ctx.fillStyle = 'rgba(255,255,255,'+(20-e.t)/20+')';
+    ctx.beginPath();
+    ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t*(e.inc||1)), 0,7 );
+    ctx.fill();
+    if (e.t>19) explosions = explosions.remove(e); // explosion end
+  });
 
 }, 1000/framesPerSec);
 

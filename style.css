@@ -100,7 +100,7 @@ body {
   color: #FFF;
   text-shadow: 0 0 2px #000, 1px 1px 1px #000;
   opacity: 0;
-  transition: 5s;
+  transition: 8s;
 }
 #msgBox.visible {
   opacity: 1;
