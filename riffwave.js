@@ -59,7 +59,7 @@ var FastBase64 = {
 
 FastBase64.Init();
 
-var RIFFWAVE = function(data) {
+var RIFFWAVE = function(data, config) {
 
     this.data = [];        // Array containing audio samples
     this.wav = [];         // Array containing the generated wave file
@@ -80,6 +80,8 @@ var RIFFWAVE = function(data) {
         subChunk2Id  : [0x64,0x61,0x74,0x61], // 36   4    "data" = 0x64617461
         subChunk2Size: 0                      // 40   4    data size = NumSamples*NumChannels*BitsPerSample/8
     };
+
+    if (config) for (key in config) this.header[key] = config[key];
 
     function u32ToArray(i) {
         return [i&0xFF, (i>>8)&0xFF, (i>>16)&0xFF, (i>>24)&0xFF];
