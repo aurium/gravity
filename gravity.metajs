@@ -419,18 +419,24 @@ setInterval(function() {
       weapon: true,
       planet: p.p2a,
       rotate: -pi/2,
-      r: 10
+      r: 10,
+      life: 100
     };
     focus = ship;
   }
 
   /*** Updates ****************************************************************/
+  if (ship.life < 0) ship.life = 0;
+  life.style.width = ship.life + '%';
+  ship.life += .01;
+  if (ship.life > 100) ship.life = 100;
+
   // Update ship position:
   if (shipAlive) {
     updatePosition(ship,
       function(p) {
         ship.rotateV = 0;
-        if (boidsOnPlanet(p).length < 5) releaseTripulation();
+        if (boidsOnPlanet(p).length < 7) releaseTripulation();
         else if (ownerOfPlanet(p)>0) msgToUsr('Are you crazy? We will die!');
       },
       {
@@ -451,27 +457,25 @@ setInterval(function() {
             shipDie('You crash in the sun before colonize all start system.');
             explosions.push({ x:ship.x, y:ship.y, r:10 });
           } else { // Ship landed a planet
-            if (proximity < -2) { // Too hard! Explode
-              shipDie(
+            ship.planet = p;
+            ship.rotate = getAngleToPlanet(ship, p);
+            if (proximity < -1.5) { // Too hard! Explode
+              ship.life -= 90;
+              explosions.push({ x:ship.x, y:ship.y, r:10 });
+              if (ship.life < 0) shipDie(
                 'You crash in a planet before colonize all start system.'+
                 '<p/><strong>Impact: '+
-                 Math.round(proximity*-100)+'uF.</strong> Maximum is 200uF.'
+                 Math.round(proximity*-100)+'uF.</strong> Maximum is 150uF.'
               );
+              else msgToUsr('Slow down! You was just about to explode.');
+            } else if ( distP2P(ship, landingPos(ship, p)).d > 10 ) {
+              ship.life -= 50;
               explosions.push({ x:ship.x, y:ship.y, r:10 });
-            } else {
-              if ( distP2P(ship, landingPos(ship, p)).d > 10 ) {
-                log( 'CRASH',
-                     'ship', ship.x, ship.y,
-                     'expected', landingPos(ship, p) );
-                shipDie(
-                  'You crash in a planet before colonize all start system.'+
-                  '<p/><strong>Bad angle.</strong>'
-                );
-                explosions.push({ x:ship.x, y:ship.y, r:10 });
-              } else {
-                ship.planet = p;
-                releaseTripulation();
-              }
+              if (ship.life < 0) shipDie(
+                'You crash in a planet before colonize all start system.'+
+                '<p/><strong>Bad angle.</strong>'
+              );
+              else msgToUsr('Trust on your landing autopilot.');
             }
           }
         }

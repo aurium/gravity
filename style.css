@@ -76,11 +76,12 @@ body {
   text-shadow: 1px 1px 0 rgba(255,255,255,0.6);
   display: block;
   width: 100%;
+  min-height: 10px;
   background: #0BF;
   box-shadow: inset 0 0 10px #014;
   border: 1px solid #034;
   border-radius: 4px;
-  opacity: 0.6;
+  opacity: 1;
 }
 .pix15 .progress i {
   font-size: 14px;
