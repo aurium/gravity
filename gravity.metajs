@@ -304,27 +304,27 @@ var getAngleToPlanet = function(obj, planet) {
   return angleToPlanet % completeRad;
 };
 
-var addTripulation = function(b) {
-  ship.tripulation.push(b);
+var addCrew = function(b) {
+  ship.crew.push(b);
   boids = boids.remove(b);
   b.shipIO = now();
 };
 
-var shipLastExitTripulation=0, shipLastJet=0;
-var releaseTripulation = function() {
-  var b = ship.tripulation[0];
+var shipLastExitCrew=0, shipLastJet=0;
+var releaseCrew = function() {
+  var b = ship.crew[0];
   // Has boid AND 1sec no user up AND 1sec last boid leave the ship
   if ( b && (now()-shipLastJet)>secs(1) &&
        shipLastJet>b.shipIO &&
-       (now()-shipLastExitTripulation)>secs(.5)
+       (now()-shipLastExitCrew)>secs(.5)
      ) {
-    shipLastExitTripulation = now();
+    shipLastExitCrew = now();
     b.shipIO = now();
     b.planet = ship.planet;
     b.r = 2;
     b.rotate = ship.rotate + rand(.5);
     boids.push(b);
-    ship.tripulation = ship.tripulation.remove(b);
+    ship.crew = ship.crew.remove(b);
   }
 };
 
@@ -415,7 +415,7 @@ setInterval(function() {
     log('Initialize Ship'); //debug
     shipAlive = true;
     ship = {
-      tripulation: [newBoid(0, 2, 0,0, 0,0, null, null, false)],
+      crew: [newBoid(0, 2, 0,0, 0,0, null, null, false)],
       weapon: true,
       planet: p.p2a,
       rotate: -pi/2,
@@ -436,7 +436,7 @@ setInterval(function() {
     updatePosition(ship,
       function(p) {
         ship.rotateV = 0;
-        if (boidsOnPlanet(p).length < 7) releaseTripulation();
+        if (boidsOnPlanet(p).length < 7) releaseCrew();
         else if (ownerOfPlanet(p)>0.3) msgToUsr('Are you crazy? We will die!');
       },
       {
@@ -547,11 +547,11 @@ setInterval(function() {
           }
           if (
                abs(ship.rotate-b.rotate) < .01 &&  // boid is above the ship
-               ship.tripulation.length < 3 &&      // there is room for it
+               ship.crew.length < 3 &&             // there is room for it
                (now()-b.shipIO) > secs(3)          // Was not in the ship
              ) {
-            if ( b.o == 0 ) addTripulation(b); // is one of the player's boids
-            else if ( shipAlive ) { // enemy boid attacks the ship
+            if ( b.o == 0 ) addCrew(b);     // is one of the player's boids
+            else if ( shipAlive ) {         // enemy boid attacks the ship
               ship.life -= 1;
               explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
               if (ship.life < 0) shipDie(
@@ -836,24 +836,17 @@ setInterval(function() {
     // Staff Boids
     ctx.lineWidth = 1/(z+1/2);
     ctx.strokeStyle = '#181';
-    var drawTripulation = function(pos) {
-      var t = ship.tripulation;
+    var drawCrew = function(pos) {
+      var t = ship.crew;
       ctx.beginPath();
       ctx.fillStyle = t[pos] ? 'rgb('+t[pos].color[1]+')' : '#888';
       ctx.arc( -4+(pos*4),0, 2, 0,7 );
       ctx.closePath();
       ctx.fill(); ctx.stroke();
     }
-    drawTripulation(0);
-    drawTripulation(1);
-    drawTripulation(2);
-    /*var t = ship.tripulation;
-    ctx.beginPath(); ctx.fillStyle = t[0] ? 'rgb('+t[0].color[1]+')' : '#888';
-    ctx.arc( -4,0, 2, 0,7 ); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.fillStyle = t[1] ? t[1].color[1] : '#888';
-    ctx.arc(  0,0, 2, 0,7 ); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.fillStyle = t[2] ? t[2].color[1] : '#888';
-    ctx.arc(  4,0, 2, 0,7 ); ctx.closePath(); ctx.fill(); ctx.stroke();*/
+    drawCrew(0);
+    drawCrew(1);
+    drawCrew(2);
     ctx.restore();
   }
 
