@@ -24,8 +24,20 @@ sed_script=$(
 
 sed -r "$sed_script" gravity.metajs > gravity.js
 
+if ! ( which cssc && which uglifyjs )>/dev/null; then
+  echo "
+  You don't have some minifyer build dependence.
+  $ npm install -g css-condense uglify-js
+  "
+  exit 1
+fi
+
+uglifyjs gravity.js --screw-ie8 --mangle --compress --output=gravity.min.js
+uglifyjs riffwave.js --screw-ie8 --mangle --compress --output=riffwave.min.js
+cssc style.css > style.min.css
+
 test -e $zip && rm $zip
-zip $zip gravity.js riffwave.js index.html style.css
+zip $zip gravity.min.js riffwave.min.js index.html style.min.css
 
 size="$( ls -lh $zip | sed -r 's/.* ([0-9,.]+K) .*/\1/' )"
 echo "=> $size"

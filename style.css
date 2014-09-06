@@ -100,7 +100,7 @@ body {
   color: #FFF;
   text-shadow: 0 0 2px #000, 1px 1px 1px #000;
   opacity: 0;
-  transition: 8s;
+  transition: 12s;
 }
 #msgBox.visible {
   opacity: 1;
@@ -196,6 +196,15 @@ b {
   border: 3px solid #FF0;
 }
 #btW i:before { content: "⊗" }
+
+#ctrl {
+  top: 35%;
+  right: 20px;
+  bottom: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 15px;
+}
 
 #deadMsg {
   display: none;

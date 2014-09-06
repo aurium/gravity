@@ -105,27 +105,25 @@ var makeMusic = function(sampleRate, bpm, pitch, music) {
   player.src = wav.dataURI;
   return player;
 }
-// Superman?
-//'4L 3L 3E 3L 5L 1- 4Q 4L 5E 1- 4L 3L 3E 3L 5L 1- 3Q 3P 5P ' +
-//'4L 3L 3E 3L 5L 1- 4Q 4L 5E 1- 3Q 3Q 3Q 3Q 3S 3S 4S 3Z 3X '
 var music;
 setTimeout(function(){
+  var superman = '4L 3L 3E 3L 5L 1- 4Q 4L 5E 1- 4L 3L 3E 3L 5L 1- 4Q 3P 5P ';
+                 //'4L 3L 3E 3L 5L 1- 4Q 4L 5E 1- 3Q 3Q 3Q 3Q 3S 3S 4S 3Z 3X ';
+  var heart;
+  for (var t=6; t>3 ;t--) for (var i=0; i<3*t ;i++) heart += '3G 2D '+t+'- ';
   var intro   = '4D 4D 3G 3G 3- 4I 4J 3K 3L 3- 4D 4D 3G 3G 3- 4N 4M 3K 3J 3- ';
   var phrase1 = '4E 4F 4G 3E 3F 3G 2E 2F 2G 1- 2H 2I 2J 1- 2K 2L 2M 1- ';
   var phrase2 = '3W 3Z 3Y 3X 3W 2- 2N 2N 2N 2- 2M 2M 2M 2- 2L 2L 2L 2- 3P 3O ';
-  //var phrase2 = '3W 3Z 3Y 3X 3W 2- 2N 2N 2N 2- 2M 2M 2M 2- 2L 2L 2L 2- 3P 3O ';
-  //var phrase3 = '3F 3D 3O 3M 4E 4D 4C 1- 2E 2F 2G 1- 2H 2I 2J 1- ';
-  var phrase4 = '2- ';
+  var phrase3 = '2- ';
   for (var i='O'.charCodeAt(0); i>'B'.charCodeAt(0) ;i-=4)
-    phrase4 += '4' + String.fromCharCode(i+1) +' '+
+    phrase3 += '4' + String.fromCharCode(i+1) +' '+
                '4' + String.fromCharCode(i+1) +' '+
                '3' + String.fromCharCode(i) +' '+
                '3' + String.fromCharCode(i) +' '+
                '3' + String.fromCharCode(i) +' '+
                '3' + String.fromCharCode(i) +' 3- ';
-  //var phrase4 = '3Q 3W 3S 3R 3Q 2- 3N 3M 2- 3M 3L 2- 3G 4E';
   music = makeMusic(2000, 180, .7,
-    intro + phrase1 + phrase2 + phrase4 //+ phrase3
+    heart + intro + phrase1 + phrase2 + phrase3 + heart + superman
   );
   music.loop = true;
   music.play();
@@ -350,6 +348,12 @@ Array.prototype.remove = function(item) {
   return newList;
 };
 
+/*Array.prototype.rand = function() {
+  var index = Math.round( Math.random() * this.length );
+  if (index == this.length) index = 0;
+  return this[index];
+};*/
+
 var landingPos = function(obj, p) {
   return {
     x: p.x + cos(obj.rotate)*(p.r+obj.r),
@@ -451,10 +455,14 @@ var newBoid = function(o, r, x,y, vx,vy, rotate, planet, pushToList) {
 
 //TODO: var newExplosion
 
-var msgToUsr = function(msg) {
-  msgBox.innerHTML = msg;
+var lastMsgToUsr = now();
+var msgToUsr = function() {
+  lastMsgToUsr = now();
+  var index = Math.round( Math.random() * arguments.length );
+  if (index == arguments.length) index = 0;
+  msgBox.innerHTML = arguments[index];
   msgBox.className = 'visible';
-  setTimeout( function(){ msgBox.className='' }, 500 );
+  setTimeout( function(){ msgBox.className='' }, secs(1) );
 };
 
 var ticCounter = 0, framesPerSec = 30;
@@ -526,6 +534,66 @@ setInterval(function() {
 
   // Update ship position:
   if (shipAlive) {
+    if ( lastMsgToUsr < now()-secs(10) ) { // Much time without a message...
+      if (ship.planet) {
+        if ( ownerOfPlanet(ship.planet) == 0 ) { // on one of the player's planet
+          if ( ship.crew.length < 3 )
+            msgToUsr( "",
+              "C'mon folks! Enter on the ship.",
+              "Full this ship and let's get another planet!"
+            );
+          else
+            msgToUsr(
+              "You can takeoff, boss.",
+              "Let's get another planet!",
+              "The ship is full! Let's get another planet!!!"
+            );
+        } else if ( ownerOfPlanet(ship.planet) > 0 ) { // Enemy's planet
+          if ( ship.crew.length == 0 )
+            msgToUsr(
+              'This reddish can attack the our landed ship.',
+              'They can attack the ship, boss.',
+              'What are you waiting for? Takeoff!'
+            );
+        } else { // Non owned planet
+          if ( ship.crew.length == 0 )
+            msgToUsr(
+              'Takeoff and come back with some crew.',
+              'If you had taken some crew, we could owned this planet...'
+            );
+        }
+      } else if ( distP2P(ship,sun).d < orbDist1*.9 ) { // ship is fling near to the sun
+        msgToUsr(
+          "DANGER!!! DANGER!!!",
+          "I hate the sun lower orbit!!!",
+          "Boss! The sun can destroy us!",
+          "oOooww daddy... Let's go back home... pleezzz?"
+        );
+      } else if ( distP2P(ship,sun).d > biggerPlanetD*1.1) { // ship is fling far away
+        msgToUsr(
+          "Where are you going?",
+          "We are too far away, boss!",
+          "oOooww daddy... Let's go back home... pleezzz?"
+        );
+      } else { // ship is fling on interplanetary space
+        if ( ship.crew.length == 0 )
+          msgToUsr("",
+            "Let's take some crew, so we can own another planet.", "",
+            "Hey! Let's take a crew, so you can own some planet.", "",
+            "Bud... You need to take some crew.", "",
+            "Boss, where is your green ones?", ""
+          );
+        else // fly with some crew
+          msgToUsr("",
+            "Let's take another planet?", "",
+            "Uninhabited planets are easier to take.", "",
+            "Hey pally, let's rule some reddish planet?", "",
+            "Boss, you can let the autopilot to land us.", "",
+            "You only need to gently approach the planet. The autopilot land us.",
+            "Hey bud, let's fire our missiles against a reddish planet?"
+          );
+      }
+    }
     updatePosition(ship,
       function(p) {
         ship.rotateV = 0;
@@ -607,10 +675,31 @@ setInterval(function() {
           missiles = missiles.remove(m);
           explosions.push({ x:m.x, y:m.y, r:25 });
           // Kill near boids
+          var deadCounter = 0;
           boids.forEach(function(b){
             if ( distP2P(m,b).d < 40 ) {
+              deadCounter += b.o==0 ? -99 : 1;
               boids = boids.remove(b);
               explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
+            }
+            if ( deadCounter < 0 ) { // friend killed
+              msgToUsr(
+                "OMG! You killed Kenny. You bastard!",
+                "Ops... You shot a green one.",
+                "Do you know who is your team?"
+              );
+            } else if ( deadCounter == 0 ) { // no one killed
+              msgToUsr( "",
+                "How can you miss that!?",
+                "Thank you, for the lost missile.",
+                "Did you know how much that missile costs to our economy?"
+              );
+            } else { // enemy killed
+              msgToUsr( "",
+                "Suck it!", "Suck it reddish!",
+                "A reddish cleaner missile.",
+                "This is MY planet!"
+              );
             }
           });
         }
