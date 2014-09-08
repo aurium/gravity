@@ -294,7 +294,7 @@ var shipDie = function(txt, showNow) {
   zoom = (h/biggerPlanetD)/2;
   if (!txt) txt = 'You die.'
   deadMsg.innerHTML += txt +
-    '<a class="bt" onclick="pressDialogBt()">Restart</a>';
+    '<a class="bt" onclick="document.location.reload()">Restart</a>';
   pressDialogBt = function(){ document.location.reload() };
   deadMsg.style.display = 'block';
 };
@@ -849,20 +849,24 @@ setInterval(function() {
   // Clear all
   ctx.clearRect(0,0,w,h);
   ctxMap.clearRect(0,0,map.width,map.height);
-  //ctxMap.fillStyle = 'rgba(0,0,0,0.02)';
-  //ctxMap.fillRect (0,0,map.width,map.height);
+
   // Stars
   //ctx.putImageData(imgDataObj, 0, 0);
+
   // Sun rays
   // createRadialGradient's first ray must to be 0 for android.
   var sunRayZoom = z>.5 ? .45 + z/10 : z;
-  //macro sunRayLength: sunRayZoom*sun.r*3
-  var grd = ctx.createRadialGradient(vCX, vCY, 0, vCX, vCY, sunRayLength);
-  grd.addColorStop(0, 'rgb('+sun.c[0]+')');
-  grd.addColorStop(0.2, 'rgba('+sun.c[0]+',0.5');
-  grd.addColorStop(1, 'rgba(0,0,0,0.5)');
-  ctx.fillStyle = grd;
-  //ctx.fillStyle = '#F80';
+  var sunRayLength = sunRayZoom * sun.r * 3;
+  if ( qualityLevel < 3 ) {
+    var grd = ctx.createRadialGradient(vCX, vCY, 0, vCX, vCY, sunRayLength);
+    grd.addColorStop(0, 'rgb('+sun.c[0]+')');
+    grd.addColorStop(0.2, 'rgba('+sun.c[0]+',0.5');
+    grd.addColorStop(1, 'rgba(0,0,0,0.5)');
+    ctx.fillStyle = grd;
+  } else {
+    sunRayLength = sunRayZoom * sun.r * 2;
+    ctx.fillStyle = '#FC0';
+  }
   ctx.beginPath();
   var timeDif = (now() - start)/16000;
   for (var i=timeDif; i<timeDif+7; i+=0.314*2) {
@@ -871,27 +875,41 @@ setInterval(function() {
   }
   ctx.closePath();
   ctx.fill();
+
   // Draw Planets
   for ( var id in planets ) {
     var p = planets[id];
     // Planet Bright
-    var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0,
-                                       z*p.x+vCX, z*p.y+vCY, z*p.r*2);
-    grd.addColorStop(0, 'rgb('+p.c[1]+')');
-    grd.addColorStop(0.48, 'rgb('+p.c[1]+')');
-    grd.addColorStop(0.48, 'rgba('+p.c[2]+','+(p==sun?0.6:0.3*(z>.5?z:.5))+')');
-    grd.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r*(p==sun?3:2), 0,7 );
-    ctx.closePath();
-    ctx.fill();
-    // Planet Volume Shadow
-    var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0, //z*p.r/9,
-                                       z*p.x+vCX, z*p.y+vCY, z*p.r);
-    grd.addColorStop(0, 'rgba('+p.c[1]+',0)');
-    grd.addColorStop(1, 'rgb('+p.c[0]+')');
-    ctx.fillStyle = grd;
+    if ( qualityLevel == 1 ) {
+      var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0,
+                                         z*p.x+vCX, z*p.y+vCY, z*p.r*2);
+      grd.addColorStop(0, 'rgb('+p.c[1]+')');
+      grd.addColorStop(0.48, 'rgb('+p.c[1]+')');
+      grd.addColorStop(0.48, 'rgba('+p.c[2]+','+(p==sun?0.6:0.3*(z>.5?z:.5))+')');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r*(p==sun?3:2), 0,7 );
+      ctx.closePath();
+      ctx.fill();
+    }
+    if ( qualityLevel == 2 ) {
+      ctx.fillStyle = 'rgb('+p.c[1]+')';
+      ctx.beginPath();
+      ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r*.99, 0,7 );
+      ctx.closePath();
+      ctx.fill();
+    }
+    if ( qualityLevel < 3 ) {
+      // Planet Volume Shadow
+      var grd = ctx.createRadialGradient(z*p.x+vCX, z*p.y+vCY, 0, //z*p.r/9,
+                                         z*p.x+vCX, z*p.y+vCY, z*p.r);
+      grd.addColorStop(0, 'rgba('+p.c[1]+',0)');
+      grd.addColorStop(1, 'rgb('+p.c[0]+')');
+      ctx.fillStyle = grd;
+    } else {
+      ctx.fillStyle = 'rgb('+p.c[0]+')';
+    }
     ctx.beginPath();
     ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r, 0,7 );
     ctx.closePath();
@@ -1027,10 +1045,14 @@ setInterval(function() {
     ctx.closePath();
     ctx.fill();
     // Body
-    grd = ctx.createRadialGradient(1, 0, 0, 1, 0, 10);
-    grd.addColorStop(0, '#F0F8F8');
-    grd.addColorStop(1, '#799');
-    ctx.fillStyle = grd;
+    if ( qualityLevel < 3 ) {
+      grd = ctx.createRadialGradient(1, 0, 0, 1, 0, 10);
+      grd.addColorStop(0, '#F0F8F8');
+      grd.addColorStop(1, '#799');
+      ctx.fillStyle = grd;
+    } else {
+      ctx.fillStyle = '#ACC';
+    }
     ctx.beginPath();
     ctx.moveTo(-9,-4.5);
     ctx.bezierCurveTo( 0,-10, 9.5,-4, 10,0 );
