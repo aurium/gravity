@@ -379,15 +379,15 @@ var msgToUsr = function() {
 var onUpdateBoidsOnPlanet = function(eventType, planet) {
   var owner;
   switch (eventType) {
-    'born': /* nothing to say */ break;
-    'die': /* noting more to say */ break;
-    'conflict':
+    case 'born': /* nothing to say */ break;
+    case 'die': /* noting more to say */ break;
+    case 'conflict':
       msgToUsr(
         'A green died with honor.',
         'A green died, but he took a reddish with him.'
       );
       break;
-    'addToShip':
+    case 'addToShip':
       if ( lastMsgToUsr < now()-secs(6) )
         msgToUsr( '',
           'A green enlistment to the crew.', '',
@@ -395,7 +395,7 @@ var onUpdateBoidsOnPlanet = function(eventType, planet) {
           'Today is a good day to die.', ''
         );
       break;
-    'playerLanding':
+    case 'playerLanding':
       if ( lastMsgToUsr < now()-secs(6) )
         msgToUsr( '',
           "It's always a great day when a green lands a planet.", '',
@@ -403,7 +403,7 @@ var onUpdateBoidsOnPlanet = function(eventType, planet) {
           'We will rule this planet!', ''
         );
       break;
-    'enemyLanding':
+    case 'enemyLanding':
       owner = ownerOfPlanet(planet);
       if ( owner == 1 ) {
         if ( lastMsgToUsr < now()-secs(6) )
