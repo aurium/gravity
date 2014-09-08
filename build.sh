@@ -27,7 +27,15 @@ sed -r "$sed_script" gravity.metajs > gravity.js
 if ! ( which cssc && which uglifyjs )>/dev/null; then
   echo "
   You don't have some minifyer build dependence.
-  $ npm install -g css-condense uglify-js
+  $ sudo npm install -g css-condense uglify-js
+  "
+  exit 1
+fi
+
+if ! ( which zip && which inotifywait )>/dev/null; then
+  echo "
+  You don't have some build dependence tools.
+  $ sudo aptitude install zip inotify-tools
   "
   exit 1
 fi
