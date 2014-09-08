@@ -2,6 +2,9 @@
 
 try {
 
+var RIFFWAVE;
+// include riffwave
+
 var log = function() { // debug
   var args = []; // debug
   for (var i=0; i<arguments.length; i++) args.push(arguments[i]); // debug

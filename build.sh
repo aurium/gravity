@@ -58,11 +58,10 @@ if ! ( which zip && which inotifywait )>/dev/null; then
 fi
 
 uglifyjs gravity.js --screw-ie8 --mangle --compress --output=gravity.min.js
-uglifyjs riffwave.js --screw-ie8 --mangle --compress --output=riffwave.min.js
 cssc style.css > style.min.css
 
 test -e $zip && rm $zip
-zip $zip gravity.min.js riffwave.min.js index.html style.min.css
+zip $zip gravity.min.js index.html style.min.css
 
 size="$( ls -lh $zip | sed -r 's/.* ([0-9,.]+K) .*/\1/' )"
 echo "=> $size"
@@ -81,7 +80,7 @@ while [ ${#hr} -lt $w ]; do
 done
 echo $hr
 
-if inotifywait -r "$(dirname "$0")" -e CLOSE_WRITE; then #--event CLOSE_WRITE; then
+if inotifywait -r "$(dirname "$0")" -e CLOSE_WRITE; then
   sleep 0.3
   exec "$0"
 fi

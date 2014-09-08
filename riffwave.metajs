@@ -1,6 +1,7 @@
 /* 
- * RIFFWAVE.js v0.03 - Audio encoder for HTML5 <audio> elements.
+ * RIFFWAVE.js v0.03-2 - Audio encoder for HTML5 <audio> elements.
  * Copyleft 2011 by Pedro Ladaria <pedro.ladaria at Gmail dot com>
+ * Copyleft 2014 by Aurélio A. Heckert <aurium at colivre.coop.br>
  *
  * Public Domain
  *
@@ -33,7 +34,7 @@ var FastBase64 = {
         var dst = '';
         var i = 0;
         while (len > 2) {
-            n = (src[i] << 16) | (src[i+1]<<8) | src[i+2];
+            var n = (src[i] << 16) | (src[i+1]<<8) | src[i+2];
             dst+= this.encLookup[n >> 12] + this.encLookup[n & 0xFFF];
             len-= 3;
             i+= 3;
@@ -59,7 +60,7 @@ var FastBase64 = {
 
 FastBase64.Init();
 
-var RIFFWAVE = function(data, config) {
+RIFFWAVE = function(data, config) {
 
     this.data = [];        // Array containing audio samples
     this.wav = [];         // Array containing the generated wave file
@@ -81,7 +82,7 @@ var RIFFWAVE = function(data, config) {
         subChunk2Size: 0                      // 40   4    data size = NumSamples*NumChannels*BitsPerSample/8
     };
 
-    if (config) for (key in config) this.header[key] = config[key];
+    if (config) for (var key in config) this.header[key] = config[key];
 
     function u32ToArray(i) {
         return [i&0xFF, (i>>8)&0xFF, (i>>16)&0xFF, (i>>24)&0xFF];
