@@ -23,11 +23,11 @@ var makeAudio = function(length, toneIni, toneEnd, noise, gainFn) {
   return player;
 }
 
-var play = function(soundName) {
-  if (allowSound) play[soundName].play();
+playAudio = function(soundName) {
+  if (allowSound) playAudio[soundName].play();
 };
-play.explosion = makeAudio(10000, 150, 50, 1);
-play.gun = makeAudio(4000, 1500, 600, 0.2, 'triangle');
+playAudio.explosion = makeAudio(10000, 150, 50, 1);
+playAudio.gun = makeAudio(4000, 1500, 600, 0.2, 'triangle');
 
 // makeMusic -- build a RIFFWAVE music based on a score simplifyed notation
 // param music is a string each 3 char means:

@@ -24,7 +24,7 @@ var biteLimit = function(val) {
 
 var rand = function(num) { return (Math.random()-0.5) * (num||1) };
 
-var music;
+var music, playAudio;
 // include audio
 
 var randColor = function(mr,vr,mg,vg,mb,vb) {
@@ -173,7 +173,7 @@ try {
 } catch(e) { }
 
 var shipDie = function(txt, showNow) {
-  play('explosion');
+  playAudio('explosion');
   shipAlive = false;
   if (!showNow) return setTimeout( function(){ shipDie(txt,true) }, 500 );
   focus = sun;
@@ -394,7 +394,7 @@ var fireWeapon = function () {
       (ship.planet ? ship.planet.vx : ship.vx) + cos(ship.rotate) * 2,
       (ship.planet ? ship.planet.vy : ship.vy) + sin(ship.rotate) * 2
     );
-    play('gun');
+    playAudio('gun');
     setTimeout(function(){
       btW.className = '';
       ship.weapon = true;

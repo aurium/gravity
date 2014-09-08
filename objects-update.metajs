@@ -150,7 +150,7 @@ if (shipAlive) {
           if (proximity < -1.5) { // Too hard! Explode
             ship.life -= 90;
             explosions.push({ x:ship.x, y:ship.y, r:10 });
-            play('explosion');
+            playAudio('explosion');
             if (ship.life < 0) shipDie(
               'You crash in a planet before colonize all start system.'+
               '<p/><strong>Impact: '+
@@ -164,7 +164,7 @@ if (shipAlive) {
           } else if ( distP2P(ship, landingPos(ship, p)).d > 10 ) {
             ship.life -= 50;
             explosions.push({ x:ship.x, y:ship.y, r:10 });
-            play('explosion');
+            playAudio('explosion');
             if (ship.life < 0) shipDie(
               'You crash in a planet before colonize all start system.'+
               '<p/><strong>Bad angle.</strong>'
@@ -200,7 +200,7 @@ missiles.forEach(function(m) {
   updatePosition(m, function(){},
     {
       2: function(p, proximity) { // Touch the planet
-        play('explosion');
+        playAudio('explosion');
         missiles = missiles.remove(m);
         explosions.push({ x:m.x, y:m.y, r:25 });
         // Kill near boids
