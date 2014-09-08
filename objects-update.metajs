@@ -150,7 +150,7 @@ if (shipAlive) {
           if (proximity < -1.5) { // Too hard! Explode
             ship.life -= 90;
             explosions.push({ x:ship.x, y:ship.y, r:10 });
-            playAudio('explosion');
+            playAudio('nearExplosion');
             if (ship.life < 0) shipDie(
               'You crash in a planet before colonize all start system.'+
               '<p/><strong>Impact: '+
@@ -164,7 +164,7 @@ if (shipAlive) {
           } else if ( distP2P(ship, landingPos(ship, p)).d > 10 ) {
             ship.life -= 50;
             explosions.push({ x:ship.x, y:ship.y, r:10 });
-            playAudio('explosion');
+            playAudio('nearExplosion');
             if (ship.life < 0) shipDie(
               'You crash in a planet before colonize all start system.'+
               '<p/><strong>Bad angle.</strong>'
@@ -195,16 +195,49 @@ if (shipAlive) {
   ship.rotateV *= 0.99;           // Rotation friction (Yeah... this is a fake space)
 }
 
+// Update Cannons
+cannons.forEach(function(cannon){
+  updatePosition(cannon);
+  if (cannon.build<10) cannon.build += 0.02;
+  var shipAngle = getAngleToPlanet(ship, cannon.planet);
+  // Remove near to zero jump (useless complete turn the ship)
+  if ( shipAngle < pi/2 && cannon.rotate > pi*1.5 ) cannon.rotate -= completeRad;
+  if ( shipAngle > pi*1.5 && cannon.rotate < pi/2 ) cannon.rotate += completeRad;
+  // Adjust ship rotation
+  if ( shipAngle-cannon.rotate > 0.02 ) cannon.rotate += 0.01;
+  else if ( shipAngle-cannon.rotate > 0.01 ) cannon.rotate += 0.003;
+  if ( shipAngle-cannon.rotate < -0.02 ) cannon.rotate -= 0.01;
+  else if ( shipAngle-cannon.rotate < -0.01 ) cannon.rotate -= 0.003;
+  // Shot!
+  if ( abs(shipAngle-cannon.rotate) < 0.2    // target locked
+       && (now()-cannon.lastShot) > secs(3)  // cannon loaded
+       && cannon.build >= 10                 // is operational
+       && distP2P(cannon,ship).d < 900       // not so distant
+     ) {
+    cannon.lastShot = now();
+    newMissile(1, cannon.x, cannon.y,
+      cannon.planet.vx + cos(cannon.rotate) * 4,
+      cannon.planet.vy + sin(cannon.rotate) * 4
+    );
+    playAudio('gun');
+  }
+});
+
 // Update missiles
 missiles.forEach(function(m) {
   updatePosition(m, function(){},
     {
       2: function(p, proximity) { // Touch the planet
-        playAudio('explosion');
+        if ( distP2P(ship, m).d < (w/z)/3 ) playAudio('nearExplosion');
+        else playAudio('distantExplosion');
         missiles = missiles.remove(m);
         explosions.push({ x:m.x, y:m.y, r:25 });
-        // Kill near boids
-        var deadCounter = 0;
+        // Kill near boids and cannons
+        var deadCounter = 0, cannon = getCannonFromPlanet(p);
+        if ( cannon && distP2P(m,cannon).d < 40 ) {
+          destroyCannon(cannon);
+          deadCounter++;
+        }
         boids.forEach(function(b){
           if ( distP2P(m,b).d < 40 ) {
             deadCounter += b.o==0 ? -99 : 1;
@@ -212,13 +245,18 @@ missiles.forEach(function(m) {
             explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
           }
           if ( deadCounter < 0 ) { // friend killed
-            msgToUsr(
+            if (m.o==0) msgToUsr(
               "OMG! You killed Kenny. You bastard!",
               "Ops... You shot a green one.",
               "Do you know who is your team?"
             );
+            else msgToUsr('',
+              "OMG! You killed Kenny. You bastard!", '',
+              "FUUUUU!!! Reddish are shoting us!", '',
+              "Tel my wife... I... love... guacamole.", ''
+            );
           } else if ( deadCounter == 0 ) { // no one killed
-            msgToUsr( "",
+            if (m.o==0) msgToUsr( "",
               "How can you miss that!?",
               "Thank you, for the lost missile.",
               "Did you know how much that missile costs to our economy?"

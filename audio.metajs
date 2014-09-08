@@ -1,7 +1,8 @@
 var RIFFWAVE;
 // include riffwave
 
-var makeAudio = function(length, toneIni, toneEnd, noise, gainFn) {
+var makeAudio = function(length, toneIni, toneEnd, noise, pitch, gainFn) {
+  if (!pitch) pitch = 1;
   gainFn = {
     line: function(i,length){ return 1-i/length },
     triangle: function(i,length){
@@ -14,7 +15,7 @@ var makeAudio = function(length, toneIni, toneEnd, noise, gainFn) {
     data.push(biteLimit(
       sin( i*(toneIni+toneDelta*(i/length))/800 + noise*rand(pi) )
       * 127 // half value
-      * gainFn(i,length) // increase/decrease amplitude
+      * gainFn(i,length) * pitch // increase/decrease amplitude
       + 127 // move to medium line
     ));
   var wav = new RIFFWAVE(data);
@@ -26,8 +27,9 @@ var makeAudio = function(length, toneIni, toneEnd, noise, gainFn) {
 playAudio = function(soundName) {
   if (allowSound) playAudio[soundName].play();
 };
-playAudio.explosion = makeAudio(10000, 150, 50, 1);
-playAudio.gun = makeAudio(4000, 1500, 600, 0.2, 'triangle');
+playAudio.nearExplosion = makeAudio(10000, 150, 50, 1, 1);
+playAudio.distantExplosion = makeAudio(10000, 150, 50, .3, 1);
+playAudio.gun = makeAudio(4000, 1500, 600, 0.2, 1, 'triangle');
 
 // makeMusic -- build a RIFFWAVE music based on a score simplifyed notation
 // param music is a string each 3 char means:
@@ -115,5 +117,5 @@ setTimeout(function(){
     heart + intro + phrase1 + phrase2 + phrase3 + heart + superman
   );
   music.loop = true;
-  music.play();
+  //music.play();
 }, 100);

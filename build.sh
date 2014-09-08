@@ -57,18 +57,32 @@ if ! ( which zip && which inotifywait )>/dev/null; then
   exit 1
 fi
 
-uglifyjs gravity.js --screw-ie8 --mangle --compress --output=gravity.min.js
-cssc style.css > style.min.css
+if ! (
+    uglifyjs gravity.js --screw-ie8 --mangle --compress --output=gravity.min.js &&
+    cssc style.css > style.min.css
+  ); then
 
-test -e $zip && rm $zip
-zip $zip gravity.min.js index.html style.min.css
+  echo ">>>> MINIFY ERROR! <<<<" >&2
+  (
+    which espeak &&
+    espeak -v en -s 150 'minifyer error' &
+  ) >/dev/null 2>&1
 
-size="$( ls -lh $zip | sed -r 's/.* ([0-9,.]+K) .*/\1/' )"
-echo "=> $size"
-(
-  which espeak &&
-  espeak -v mb-br1 -s 150 "o pacote deu $size" &
-) >/dev/null 2>&1
+else
+
+  test -e $zip && rm $zip
+  zip $zip gravity.min.js index.html style.min.css
+
+  mv gravity.js gravity.min.js # debug mode
+
+  size="$( ls -lh $zip | sed -r 's/.* ([0-9,.]+K) .*/\1/' )"
+  echo "=> $size"
+  (
+    which espeak &&
+    espeak -v en -s 150 "The package has $size" &
+  ) >/dev/null 2>&1
+
+fi
 
 ### Daemon #####################################################################
 

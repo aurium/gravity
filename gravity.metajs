@@ -132,6 +132,7 @@ var ctx = c.getContext('2d'),
     biggerPlanetD = orbDist4,
     boids = [], // see "Initialize Boids"
     missiles = [],
+    cannons = [{planet:planets.m2a1, rotate:pi*1.9, r:10, build:0, lastShot:0}],
     sun = planets.sun,
     // zoom: the wanted zoom.
     // z: the current zoom.
@@ -173,7 +174,7 @@ try {
 } catch(e) { }
 
 var shipDie = function(txt, showNow) {
-  playAudio('explosion');
+  playAudio('nearExplosion');
   shipAlive = false;
   if (!showNow) return setTimeout( function(){ shipDie(txt,true) }, 500 );
   focus = sun;
@@ -272,7 +273,7 @@ var updatePosition = function(obj, inPlanet, planetProximation) {
     obj.rotate = (obj.rotate||0) + obj.rotateV;
     obj.x = p.x + cos(obj.rotate||0)*(p.r+obj.r);
     obj.y = p.y + sin(obj.rotate||0)*(p.r+obj.r);
-    inPlanet(p);
+    if (inPlanet) inPlanet(p);
   }
   else { // Object is fling
     for ( var id in planets ) {
@@ -283,7 +284,7 @@ var updatePosition = function(obj, inPlanet, planetProximation) {
       obj.vx = (obj.vx||0) + f * dist.x;
       obj.vy = (obj.vy||0) + f * dist.y;
       var proximity = dist.d - p.r - obj.r;
-      for ( var limitDist in planetProximation ) {
+      if (planetProximation) for ( var limitDist in planetProximation ) {
         // Near to the planet
         if (proximity <= parseInt(limitDist))
           planetProximation[limitDist](p, proximity);
@@ -330,11 +331,38 @@ var releaseCrew = function() {
   }
 };
 
+var newCannon = function(planet, rotate) {
+  var c = {o:1, planet:planet, rotate:rotate||0, r:10, build:0, lastShot:0};
+  cannons.push(c);
+  return c;
+};
+
+var getCannonFromPlanet = function(planet) {
+  for ( var c,i=0; c=cannons[i]; i++ )
+    if (c.planet==planet) return c;
+  return false;
+};
+
+var buildCannonIfCan = function(planet) {
+  if ( ownerOfPlanet(planet)==1             // This is a reddish planet
+       && boidsOnPlanet(planet).length > 7  // Has many boids
+       && !getCannonFromPlanet(planet)      // Dont has a cannon
+     ) {
+    newCannon(planet);
+  }
+}
+
+var destroyCannon = function(cannon) {
+  if ( distP2P(ship, cannon).d < (w/z)/3 ) playAudio('nearExplosion');
+  else playAudio('distantExplosion');
+  explosions.push({ x:cannon.x, y:cannon.y, r:20 });
+  log(ownerOfPlanet(cannon.planet), cannon.planet)
+  if ( ownerOfPlanet(cannon.planet) == 1 ) cannon.build = -5;
+  else cannons = cannons.remove(cannon);
+};
+
 var newMissile = function(o, x,y, vx,vy) {
-  var m = {o:o,  x:x, y:y, r:4,
-    vx: vx + cos(ship.rotate) * 2,
-    vy: vy + sin(ship.rotate) * 2
-  };
+  var m = {o:o,  x:x, y:y, r:4, vx:vx, vy:vy };
   missiles.push(m);
   return m;
 };
@@ -378,8 +406,9 @@ var msgToUsr = function() {
 
 var onUpdateBoidsOnPlanet = function(eventType, planet) {
   var owner;
+  buildCannonIfCan(planet);
   switch (eventType) {
-    case 'born': /* nothing to say */ break;
+    case 'born': /* noting more to say */ break;
     case 'die': /* noting more to say */ break;
     case 'conflict':
       msgToUsr(
@@ -457,8 +486,8 @@ var fireWeapon = function () {
     btW.className = 'empty';
     ship.weapon = false;
     newMissile(0, ship.x, ship.y,
-      (ship.planet ? ship.planet.vx : ship.vx) + cos(ship.rotate) * 2,
-      (ship.planet ? ship.planet.vy : ship.vy) + sin(ship.rotate) * 2
+      (ship.planet ? ship.planet.vx : ship.vx) + cos(ship.rotate) * 4,
+      (ship.planet ? ship.planet.vy : ship.vy) + sin(ship.rotate) * 4
     );
     playAudio('gun');
     setTimeout(function(){
