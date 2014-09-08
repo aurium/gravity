@@ -3,26 +3,43 @@
 cd "$(dirname "$0")"
 zip=/tmp/gravity.zip
 
-ws="$(echo -en '[ \t]')"
-nws="$(echo -en '[^ \t]')"
-macro_re="^.*//$ws*macro$ws+($nws+)$ws*:$ws*([^\r\n]+).*\$"
+function generateJS() {
+  file_name="$1"
+  parent_sed_script="$2"
+  ws="$(echo -en '[ \t]')"
+  nws="$(echo -en '[^ \t]')"
+  macro_re="^.*//$ws*macro$ws+($nws+)$ws*:$ws*([^\r\n]+).*\$"
+  inc_re="^$ws*//$ws*include$ws+($nws+).*\$"
 
-sed_script=$(
-  egrep "$macro_re" gravity.metajs |
-  while read macro_def; do
-    macro_name="$( echo "$macro_def" | sed -r "s#$macro_re#\1#" )"
-    macro_expr="$( echo "$macro_def" | sed -r "s#$macro_re#\2#; s#@([1-9])#\\\1#g" )"
-    if ( echo "$macro_def" | grep -q '@' ); then
-      echo "s#$macro_name\(([^),]+),?([^),]+)?\)#$macro_expr#g;"
+  sed_script="$(
+    echo "$parent_sed_script"
+    egrep "$macro_re" "$file_name.metajs" |
+    while read macro_def; do
+      macro_name="$( echo "$macro_def" | sed -r "s#$macro_re#\1#" )"
+      macro_expr="$( echo "$macro_def" | sed -r "s#$macro_re#\2#; s#@([1-9])#\\\1#g" )"
+      if ( echo "$macro_def" | grep -q '@' ); then
+        echo "s#$macro_name\(([^),]+),?([^),]+)?\)#$macro_expr#g;"
+      else
+        echo "s#$macro_name#$macro_expr#g;"
+      fi
+    done
+  )"
+
+  echo "(function() { // Start $file_name"
+  sed -r "$sed_script" "$file_name.metajs" |
+  while read line; do
+    inc_file="$( echo $line | egrep "$inc_re" | sed -r "s#$inc_re#\1#" )"
+    test -n "$inc_file" && echo ">> Including $inc_file" >&2
+    if test -n "$inc_file"; then
+      generateJS "$inc_file" "$sed_script"
     else
-      echo "s#$macro_name#$macro_expr#g;"
+      echo "$line"
     fi
   done
-  echo 's#//.*##;'
-  echo 's#/\*[^*]+\*/##g;'
-)
+  echo "})(); // End $file_name"
+}
 
-sed -r "$sed_script" gravity.metajs > gravity.js
+generateJS gravity > gravity.js
 
 if ! ( which cssc && which uglifyjs )>/dev/null; then
   echo "

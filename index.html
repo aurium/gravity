@@ -17,11 +17,11 @@
     <b id="btU"></b>
     <b id="btL"></b>
     <b id="btR"></b>
-    <b id="ctrl" onclick="showConfig()"></b>
+    <b id="ctrl"></b>
     <div id="deadMsg" class="dialog">
       <h1>Game Over. ☹</h1>
     </div>
-    <div id="configBox" class="dialog">
+    <div id="ctrlBox" class="dialog">
       <h1>Configuration</h1>
       <small>Render quality:</small>
       <dir>
@@ -33,7 +33,7 @@
         <label><input type="checkbox" id="ctrlM"> Music </label> <br>
         <label><input type="checkbox" id="ctrlS"> Sound Effects </label>
       </div>
-      <a class="bt" onclick="pressDialogBt()">Close</a>
+      <a class="bt" id="ctrlClose">Close</a>
     </div>
     <div id="msgBox"></div>
     <script src="gravity.min.js"></script>
