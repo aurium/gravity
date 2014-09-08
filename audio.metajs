@@ -1,0 +1,119 @@
+var RIFFWAVE;
+// include riffwave
+
+var makeAudio = function(length, toneIni, toneEnd, noise, gainFn) {
+  gainFn = {
+    line: function(i,length){ return 1-i/length },
+    triangle: function(i,length){
+      return (i<length/3) ? i/(length/3) : 1-(i-(length/3))/(length*2/3)
+    }
+  }[gainFn||'line'];
+  var toneDelta = toneEnd - toneIni;
+  var data = [];
+  for ( var i=0; i<length; i++ )
+    data.push(biteLimit(
+      sin( i*(toneIni+toneDelta*(i/length))/800 + noise*rand(pi) )
+      * 127 // half value
+      * gainFn(i,length) // increase/decrease amplitude
+      + 127 // move to medium line
+    ));
+  var wav = new RIFFWAVE(data);
+  var player = document.createElement('audio');
+  player.src = wav.dataURI;
+  return player;
+}
+
+var play = function(soundName) {
+  if (allowSound) play[soundName].play();
+};
+play.explosion = makeAudio(10000, 150, 50, 1);
+play.gun = makeAudio(4000, 1500, 600, 0.2, 'triangle');
+
+// makeMusic -- build a RIFFWAVE music based on a score simplifyed notation
+// param music is a string each 3 char means:
+// * length: 2^value * 1000
+//   * 7 semibreve    = 4 secs
+//   * 6 mínima       = 2 secs
+//   * 5 semínima     = 1 sec at sample rate 8000
+//   * 4 colcheia     = 1/2 sec
+//   * 3 semicolcheia = 1/4 sec
+//   * 2 fusa         = 1/8 sec
+//   * 1 semifusa     = 1/16 sec
+// * note: a sequential upper letter to represent a frequency, where N is A4 (440Hz)
+//   * G3# = A 
+//   * A3  = B lá
+//   * A3# = C 
+//   * B3  = D sí
+//   * C4  = E dó
+//   * C4# = F 
+//   * D4  = G ré
+//   * D4# = H 
+//   * E4  = I mí
+//   * F4  = J fá
+//   * F4# = K 
+//   * G4  = L sol
+//   * G4# = M 
+//   * A4  = N lá
+//   * A4# = O
+//   * B4  = P sí
+//   * C5  = Q dó
+//   * C5# = R
+//   * D5  = S ré
+//   * D5# = T
+//   * E5  = U mí
+//   * F5  = V fá
+//   * F5# = W
+//   * G5  = X sol
+//   * G5# = Y
+//   * A5  = Z lá
+// * separator: an ignored char
+var makeMusic = function(sampleRate, bpm, pitch, music) {
+  var pitchFn = function(i,length){
+    return ( (i<length/4) ? i/(length/4) : 1-(i-(length/4))/(length*3/4) ) * pitch;
+  }
+  var data = [];
+  for ( var n=0; n<music.length; n+=3 ) {
+    var length = Math.pow(2, parseInt(music.charAt(n))) * (sampleRate/32) * 120/bpm;
+    if ( music.charAt(n+1) == '-' ) {
+      var freq = 0 // pause
+    } else {
+      var note = music.charCodeAt(n+1)-78; // the "N" value, so N is A4 (440Hz)
+      var freq = Math.pow(2, note/12 ) * 440 // Hz
+    }
+    for ( var i=0; i<length; i++ ) {
+      data.push(biteLimit(
+        sin( i*pi*freq/sampleRate )
+        * 127 // half value
+        * pitchFn(i,length) // increase/decrease amplitude
+        + 127 // move to medium line
+      ));
+    }
+  }
+  var wav = new RIFFWAVE(data,{sampleRate:sampleRate});
+  var player = document.createElement('audio');
+  player.src = wav.dataURI;
+  return player;
+}
+
+setTimeout(function(){
+  var superman = '4L 3L 3E 3L 5L 1- 4Q 4L 5E 1- 4L 3L 3E 3L 5L 1- 4Q 3P 5P ';
+                 //'4L 3L 3E 3L 5L 1- 4Q 4L 5E 1- 3Q 3Q 3Q 3Q 3S 3S 4S 3Z 3X ';
+  var heart;
+  for (var t=6; t>3 ;t--) for (var i=0; i<3*t ;i++) heart += '3G 2D '+t+'- ';
+  var intro   = '4D 4D 3G 3G 3- 4I 4J 3K 3L 3- 4D 4D 3G 3G 3- 4N 4M 3K 3J 3- ';
+  var phrase1 = '4E 4F 4G 3E 3F 3G 2E 2F 2G 1- 2H 2I 2J 1- 2K 2L 2M 1- ';
+  var phrase2 = '3W 3Z 3Y 3X 3W 2- 2N 2N 2N 2- 2M 2M 2M 2- 2L 2L 2L 2- 3P 3O ';
+  var phrase3 = '2- ';
+  for (var i='O'.charCodeAt(0); i>'B'.charCodeAt(0) ;i-=4)
+    phrase3 += '4' + String.fromCharCode(i+1) +' '+
+               '4' + String.fromCharCode(i+1) +' '+
+               '3' + String.fromCharCode(i) +' '+
+               '3' + String.fromCharCode(i) +' '+
+               '3' + String.fromCharCode(i) +' '+
+               '3' + String.fromCharCode(i) +' 3- ';
+  music = makeMusic(2000, 180, .7,
+    heart + intro + phrase1 + phrase2 + phrase3 + heart + superman
+  );
+  music.loop = true;
+  music.play();
+}, 100);
