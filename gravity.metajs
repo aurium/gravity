@@ -308,6 +308,8 @@ var addCrew = function(b) {
   ship.crew.push(b);
   boids = boids.remove(b);
   b.shipIO = now();
+  if (b.planet) onUpdateBoidsOnPlanet('addToShip', b.planet);
+  b.planet = null;
 };
 
 var shipLastExitCrew=0, shipLastJet=0;
@@ -321,10 +323,10 @@ var releaseCrew = function() {
     shipLastExitCrew = now();
     b.shipIO = now();
     b.planet = ship.planet;
-    b.r = 2;
     b.rotate = ship.rotate + rand(.5);
     boids.push(b);
     ship.crew = ship.crew.remove(b);
+    onUpdateBoidsOnPlanet('playerLanding', b.planet);
   }
 };
 
@@ -335,7 +337,7 @@ var newMissile = function(o, x,y, vx,vy) {
   };
   missiles.push(m);
   return m;
-}
+};
 
 var newBoid = function(o, r, x,y, vx,vy, rotate, planet, pushToList) {
   var c1 = 40, c2 = -40;
@@ -353,8 +355,14 @@ var newBoid = function(o, r, x,y, vx,vy, rotate, planet, pushToList) {
       randColor(110,50, 40,50, 0,10)
   };
   if (pushToList!==false) boids.push(b);
+  if (planet) onUpdateBoidsOnPlanet('born', planet);
   return b;
-}
+};
+
+var boidDie = function(b) {
+  boids = boids.remove(b);
+  if (b.planet) onUpdateBoidsOnPlanet('die', b.planet);
+};
 
 //TODO: var newExplosion
 
@@ -366,6 +374,64 @@ var msgToUsr = function() {
   msgBox.innerHTML = arguments[index];
   msgBox.className = 'visible';
   setTimeout( function(){ msgBox.className='' }, secs(1) );
+};
+
+var onUpdateBoidsOnPlanet = function(eventType, planet) {
+  var owner;
+  switch (eventType) {
+    'born': /* nothing to say */ break;
+    'die': /* noting more to say */ break;
+    'conflict':
+      msgToUsr(
+        'A green died with honor.',
+        'A green died, but he took a reddish with him.'
+      );
+      break;
+    'addToShip':
+      if ( lastMsgToUsr < now()-secs(6) )
+        msgToUsr( '',
+          'A green enlistment to the crew.', '',
+          'A new green enter in the ship.', '',
+          'Today is a good day to die.', ''
+        );
+      break;
+    'playerLanding':
+      if ( lastMsgToUsr < now()-secs(6) )
+        msgToUsr( '',
+          "It's always a great day when a green lands a planet.", '',
+          'A new green land the planet.', '',
+          'We will rule this planet!', ''
+        );
+      break;
+    'enemyLanding':
+      owner = ownerOfPlanet(planet);
+      if ( owner == 1 ) {
+        if ( lastMsgToUsr < now()-secs(6) )
+          msgToUsr( '',
+            'Our radar detects a reddish has landed a planet.', '',
+            'Reddish reinforcements was landed on a <b>non green</b> planet.', ''
+          );
+      } else {
+        if ( lastMsgToUsr < now()-secs(2) )
+          msgToUsr(
+            'Our radar detects a reddish has landed a green planet!',
+            'Reddish reinforcements was landed on a conflicting planet.',
+            'WARNING! WARNING! Reddish landing on one of our planets!'
+          );
+      }
+      break;
+  }
+  var totPlanets=0, totMine=0, totEnemy=0, totConflict=0, p;
+  for ( var id in planets ) {
+    p = planets[id];
+    totPlanets++;
+    owner = ownerOfPlanet(p);
+    if (owner>0 || owner<1) totConflict++;
+    else if (owner==0) totMine++;
+    else if (owner==1) totEnemy++;
+  }
+  if ( totMine == totPlanets ) return playerWin.style.display = block;
+  if ( totMine == 0 && totConflict == 0 ) return shipDie('You lose all your planets');
 };
 
 var ticCounter = 0, framesPerSec = 30;

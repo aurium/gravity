@@ -208,7 +208,7 @@ missiles.forEach(function(m) {
         boids.forEach(function(b){
           if ( distP2P(m,b).d < 40 ) {
             deadCounter += b.o==0 ? -99 : 1;
-            boids = boids.remove(b);
+            boidDie(b);
             explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
           }
           if ( deadCounter < 0 ) { // friend killed
@@ -301,11 +301,14 @@ boids.forEach(function(b){
     {
       0: function(p, proximity) { // Touch the planet
         if (p == sun) { // Boid die if dropped into sun
-          boids = boids.remove(b);
+          boidDie(b);
           explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
         } else { // Boid landed a planet
           b.planet = p;
           b.rotate = getAngleToPlanet(b, p);
+          b.o==0 ?
+            onUpdateBoidsOnPlanet('playerLanding', b.planet):
+            onUpdateBoidsOnPlanet('enemyLanding', b.planet);
         }
       }
     }
@@ -317,8 +320,8 @@ boids.forEach(function(b){
       dist = distP2P(b2,b);
       if ( (dist.d - b.r - b2.r) < 0 ) {
         if (b.o != b2.o) { // Boids conflict. Both die.
-          boids = boids.remove(b);
-          boids = boids.remove(b2);
+          boidDie(b); boidDie(b2);
+          if (b.planet) onUpdateBoidsOnPlanet('conflict', b.planet);
           explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
           explosions.push({ x:b2.x, y:b2.y, r:2, inc:.2 });
         } else { // Friend touch
