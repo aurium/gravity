@@ -3,7 +3,7 @@ ticCounter++;
 var p, dist;
 
 if ( ship ) {
-  life.style.width = ship.life + '%';
+  life.style.width = Math.round(ship.life) + '%';
   if ( shipAlive ) {
     if (shipAlive) ship.life += .01;
     if (ownerOfPlanet(ship.planet)==0) ship.life += .02; // repair bonus
@@ -204,7 +204,7 @@ cannons.forEach(function(cannon){
   if (cannon.build<10) cannon.build += 0.02;
   // Rotate to find the target
   if ( cannon.build >= 10                    // is operational
-       && distP2P(cannon,ship).d < 900       // not so distant
+       && distP2P(cannon,ship).d < 800       // not so distant
        && shipAlive                          // obvious...
        && ship.planet != cannon.planet       // ship is not here
      ) {
@@ -213,9 +213,11 @@ cannons.forEach(function(cannon){
     if ( shipAngle < pi/2 && cannon.rotate > pi*1.5 ) cannon.rotate -= completeRad;
     if ( shipAngle > pi*1.5 && cannon.rotate < pi/2 ) cannon.rotate += completeRad;
     // Adjust ship rotation
-    if ( shipAngle-cannon.rotate > 0.02 ) cannon.rotate += 0.01;
-    else if ( shipAngle-cannon.rotate > 0.01 ) cannon.rotate += 0.003;
-    if ( shipAngle-cannon.rotate < -0.02 ) cannon.rotate -= 0.01;
+    if      ( shipAngle-cannon.rotate >  0.1  ) cannon.rotate += 0.03;
+    else if ( shipAngle-cannon.rotate >  0.02 ) cannon.rotate += 0.01;
+    else if ( shipAngle-cannon.rotate >  0.01 ) cannon.rotate += 0.003;
+    else if ( shipAngle-cannon.rotate < -0.1  ) cannon.rotate -= 0.03;
+    else if ( shipAngle-cannon.rotate < -0.02 ) cannon.rotate -= 0.01;
     else if ( shipAngle-cannon.rotate < -0.01 ) cannon.rotate -= 0.003;
     // Shot!
     if ( abs(shipAngle-cannon.rotate) < 0.2    // target locked

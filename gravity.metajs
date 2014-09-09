@@ -132,7 +132,7 @@ var ctx = c.getContext('2d'),
     biggerPlanetD = orbDist4,
     boids = [], // see "Initialize Boids"
     missiles = [],
-    cannons = [{planet:planets.m2a1, rotate:pi*1.9, r:10, build:0, lastShot:0}],
+    cannons = [],
     sun = planets.sun,
     // zoom: the wanted zoom.
     // z: the current zoom.
@@ -256,6 +256,18 @@ var ownerOfPlanet = function(p) {
   return owner;
 };
 
+var planetGroups = function() {
+  var p, groups = { greens:[], reddish:[], conflict:[], total:0 };
+  for ( var id in planets ) {
+    p = planets[id];
+    groups.total++;
+    if (ownerOfPlanet(p)==0) groups.greens.push(p);
+    else if (ownerOfPlanet(p)==1) groups.reddish.push(p);
+    else groups.conflict.push(p);
+  }
+  return groups;
+}
+
 Array.prototype.remove = function(item) {
   var newList = [];
   this.forEach(function(i){
@@ -356,9 +368,12 @@ var getCannonFromPlanet = function(planet) {
 };
 
 var buildCannonIfCan = function(planet) {
-  if ( ownerOfPlanet(planet)==1             // This is a reddish planet
-       && boidsOnPlanet(planet).length > 7  // Has many boids
-       && !getCannonFromPlanet(planet)      // Dont has a cannon
+  var minBoids = 7, groups = planetGroups();
+  if ( groups.greens.length > groups.total*.5 ) minBoids = 5;
+  if ( groups.greens.length > groups.total*.8 ) minBoids = 3;
+  if ( ownerOfPlanet(planet)==1                   // This is a reddish planet
+       && boidsOnPlanet(planet).length > minBoids // Has enough boids
+       && !getCannonFromPlanet(planet)            // Dont has a cannon
      ) {
     newCannon(planet);
   }
