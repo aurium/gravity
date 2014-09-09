@@ -29,7 +29,7 @@ playAudio = function(soundName) {
 };
 playAudio.nearExplosion = makeAudio(10000, 150, 50, 1, 1);
 playAudio.distantExplosion = makeAudio(10000, 150, 50, .3, 1);
-playAudio.landing = makeAudio(1000, 200, 200, 0, .8, 'triangle');
+playAudio.landing = makeAudio(1000, 150, 150, 0, .9, 'triangle');
 playAudio.gun = makeAudio(4000, 1500, 600, 0.2, 1, 'triangle');
 
 // makeMusic -- build a RIFFWAVE music based on a score simplifyed notation
