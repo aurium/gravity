@@ -2,7 +2,12 @@ if (pause) return;
 ticCounter++;
 var p, dist;
 
+life.style.width = ship.life + '%';
+
 if ( shipAlive ) {
+  if (shipAlive) ship.life += .01;
+  if (ownerOfPlanet(ship.planet)==0) ship.life += .02; // repair bonus
+  if (ship.life > 100) ship.life = 100;
   var absShipV = abs(ship.vx) + abs(ship.vx);
   if ( absShipV > 1 ) zoom = 2/absShipV;
   else zoom = 2;
@@ -55,11 +60,6 @@ if ( !ship ) {
   };
   focus = ship;
 }
-
-life.style.width = ship.life + '%';
-if (shipAlive) ship.life += .01;
-if (ownerOfPlanet(ship.planet)==0) ship.life += .02; // repair bonus
-if (ship.life > 100) ship.life = 100;
 
 // Update ship position:
 if (shipAlive) {
