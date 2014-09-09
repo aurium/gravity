@@ -2,16 +2,17 @@ if (pause) return;
 ticCounter++;
 var p, dist;
 
-life.style.width = ship.life + '%';
-
-if ( shipAlive ) {
-  if (shipAlive) ship.life += .01;
-  if (ownerOfPlanet(ship.planet)==0) ship.life += .02; // repair bonus
-  if (ship.life > 100) ship.life = 100;
-  var absShipV = abs(ship.vx) + abs(ship.vx);
-  if ( absShipV > 1 ) zoom = 2/absShipV;
-  else zoom = 2;
-  if ( zoom < 0.5 ) zoom = 0.5;
+if ( ship ) {
+  life.style.width = ship.life + '%';
+  if ( shipAlive ) {
+    if (shipAlive) ship.life += .01;
+    if (ownerOfPlanet(ship.planet)==0) ship.life += .02; // repair bonus
+    if (ship.life > 100) ship.life = 100;
+    var absShipV = abs(ship.vx) + abs(ship.vx);
+    if ( absShipV > 1 ) zoom = 2/absShipV;
+    else zoom = 2;
+    if ( zoom < 0.5 ) zoom = 0.5;
+  }
 }
 //focus = sun; zoom = (h/biggerPlanetD)/2.1; // debug
 
@@ -153,8 +154,7 @@ if (shipAlive) {
               'You crash in a planet before colonize all start system.' +
               '<p/><strong>Impact: ' + impactMsg,
               function() {
-                explosions.push({ x:ship.x, y:ship.y, r:10 });
-                playAudio('nearExplosion');
+                newExplosion([ship, p], true, 10);
                 msgToUsr(
                   'Slow down! The <strong>impact was ' + impactMsg +
                   'You was just about to explode.'
@@ -166,8 +166,7 @@ if (shipAlive) {
               'You crash in a planet before colonize all start system.' +
               '<p/><strong>Bad angle.</strong>',
               function() {
-                explosions.push({ x:ship.x, y:ship.y, r:10 });
-                playAudio('nearExplosion');
+                newExplosion([ship, p], true, 10);
                 msgToUsr(
                   'Trust on your landing autopilot.',
                   'The landing autopilot needs your collaboration.'
@@ -237,10 +236,9 @@ missiles.forEach(function(m) {
   updatePosition(m, function(){},
     {
       2: function(p, proximity) { // Touch the planet
-        if ( distP2P(ship, m).d < (w/z)/3 ) playAudio('nearExplosion');
-        else playAudio('distantExplosion');
+        m.planet = p
+        newExplosion(m, true, 25);
         missiles = missiles.remove(m);
-        explosions.push({ x:m.x, y:m.y, r:25 });
         // Kill near boids and cannons
         var deadCounter = 0, cannon = getCannonFromPlanet(p);
         if ( cannon && distP2P(m,cannon).d < 40 ) {
@@ -250,8 +248,8 @@ missiles.forEach(function(m) {
         boids.forEach(function(b){
           if ( distP2P(m,b).d < 40 ) {
             deadCounter += b.o==0 ? -99 : 1;
+            newExplosion(b, false, 2, .2);
             boidDie(b);
-            explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
           }
           if ( deadCounter < 0 ) { // friend killed
             if (m.o==0) msgToUsr(
@@ -284,18 +282,21 @@ missiles.forEach(function(m) {
   m.t = (m.t||0)+1;
   if ( m.t > 1000 ) { // to much time. Die now.
     missiles = missiles.remove(m);
-    explosions.push({ x:m.x, y:m.y, r:4 });
+    newExplosion(m, false, 4);
   }
   if ( m.o!=0 && distP2P(ship,m).d < ship.r + m.r ) {
     missiles = missiles.remove(m);
-    shipDamage( 25,
-      'Your shields was not enough for this missile.',
-      function() {
-        playAudio('nearExplosion');
-        explosions.push({ x:m.x, y:m.y, r:20 });
-      }
-    );
+    newExplosion([m, ship], true, 20);
+    shipDamage(25, 'Your shields was not enough for this missile.');
   }
+});
+
+// Update explosions
+explosions.forEach(function(e) {
+  updatePosition(e);
+  e.t = e.t ? e.t+1 : .5;
+  if (e.t>19) explosions = explosions.remove(e); // explosion end
+  if (!e.inc) e.inc = 1;
 });
 
 // Update boids positions:
@@ -323,10 +324,10 @@ boids.forEach(function(b){
           if ( shipAlive ) {
             if ( b.o == 0 ) addCrew(b);     // is one of the player's boids
             else {                          // enemy boid attacks the ship
+              newExplosion([b, ship], false, 2, .2);
               shipDamage(1,
                 'Enemy boids has destroyed your ship.',
                 function() {
-                  explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
                   msgToUsr('Enemy boids are attacking the ship!');
                 }
               );
@@ -360,7 +361,7 @@ boids.forEach(function(b){
       0: function(p, proximity) { // Touch the planet
         if (p == sun) { // Boid die if dropped into sun
           boidDie(b);
-          explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
+          newExplosion([b, sun], false, 2, .3);
         } else { // Boid landed a planet
           b.planet = p;
           b.rotate = getAngleToPlanet(b, p);
@@ -380,8 +381,8 @@ boids.forEach(function(b){
         if (b.o != b2.o) { // Boids conflict. Both die.
           boidDie(b); boidDie(b2);
           if (b.planet) onUpdateBoidsOnPlanet('conflict', b.planet);
-          explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
-          explosions.push({ x:b2.x, y:b2.y, r:2, inc:.2 });
+          newExplosion(b, false, 2, .2);
+          newExplosion(b2, false, 2, .2);
         } else { // Friend touch
           if (b.planet) { // in a planet
             var inc = b.r/5000 * ( b.rotate<b2.rotate ? 1 : -1 );

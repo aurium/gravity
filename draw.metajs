@@ -271,11 +271,8 @@ if (shipAlive) {
 
 // Draw explosions
 explosions.forEach(function(e) {
-  // TODO: update explosion position with origin vx,vy
-  e.t = e.t ? e.t+1 : .5;
   ctx.fillStyle = 'rgba(255,255,255,'+(20-e.t)/20+')';
   ctx.beginPath();
-  ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t*(e.inc||1)), 0,7 );
+  ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t*e.inc), 0,7 );
   ctx.fill();
-  if (e.t>19) explosions = explosions.remove(e); // explosion end
 });

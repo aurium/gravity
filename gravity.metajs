@@ -177,8 +177,7 @@ var shipDamage = function(points, dieMsg, aliveFunc) {
   ship.life -= points;
   if (ship.life <= 0) {
     ship.life = 0;
-    playAudio('nearExplosion');
-    explosions.push({ x:ship.x, y:ship.y, r:20 });
+    newExplosion(ship, true, 20);
     shipDie(dieMsg);
     return false;
   }
@@ -366,10 +365,7 @@ var buildCannonIfCan = function(planet) {
 }
 
 var destroyCannon = function(cannon) {
-  if ( distP2P(ship, cannon).d < (w/z)/3 ) playAudio('nearExplosion');
-  else playAudio('distantExplosion');
-  explosions.push({ x:cannon.x, y:cannon.y, r:20 });
-  log(ownerOfPlanet(cannon.planet), cannon.planet)
+  newExplosion(cannon, true, 20);
   if ( ownerOfPlanet(cannon.planet) == 1 ) cannon.build = -5;
   else cannons = cannons.remove(cannon);
 };
@@ -405,7 +401,23 @@ var boidDie = function(b) {
   if (b.planet) onUpdateBoidsOnPlanet('die', b.planet);
 };
 
-//TODO: var newExplosion
+var newExplosion = function(sourceObj, withSound, r, inc) {
+  if ( sourceObj instanceof Array ) {
+    var mover = sourceObj[1].planet ? sourceObj[1].planet : sourceObj[1];
+    sourceObj = sourceObj[0];
+  } else {
+    var mover = sourceObj.planet ? sourceObj.planet : sourceObj;
+  }
+  explosions.push({
+    x: sourceObj.x, y: sourceObj.y,
+    vx: mover.vx, vy: mover.vy,
+    r: r||10, inc: inc||1
+  });
+  if (withSound) {
+    if ( distP2P(ship, sourceObj).d < (w/z)/3 ) playAudio('nearExplosion');
+    else playAudio('distantExplosion');
+  }
+};
 
 var lastMsgToUsr = now();
 var msgToUsr = function() {
