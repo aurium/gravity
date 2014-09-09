@@ -161,7 +161,7 @@ if (shipAlive) {
                 );
               }
             );
-          } else if ( distP2P(ship, landingPos(ship, p)).d > 15 ) {
+          } else if ( distP2P(ship, landingPos(ship, p)).d > 20 ) {
             shipDamage(50,
               'You crash in a planet before colonize all start system.' +
               '<p/><strong>Bad angle.</strong>',
