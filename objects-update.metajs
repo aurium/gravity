@@ -56,9 +56,9 @@ if ( !ship ) {
   focus = ship;
 }
 
-if (ship.life < 0) ship.life = 0;
 life.style.width = ship.life + '%';
 if (shipAlive) ship.life += .01;
+if (ownerOfPlanet(ship.planet)==0) ship.life += .02; // repair bonus
 if (ship.life > 100) ship.life = 100;
 
 // Update ship position:
@@ -144,32 +144,36 @@ if (shipAlive) {
       },
       0: function(p, proximity) { // Touch the planet
         if (p == sun) { // Ship die if dropped into sun
-          shipDie('You crash in the sun before colonize all start system.');
-          explosions.push({ x:ship.x, y:ship.y, r:10 });
+          shipDamage(1e5, 'You crash in the sun before colonize all start system.');
         } else { // Ship landed a planet
-          if (proximity < -1.5) { // Too hard! Explode
-            ship.life -= 90;
-            explosions.push({ x:ship.x, y:ship.y, r:10 });
-            playAudio('nearExplosion');
-            if (ship.life < 0) shipDie(
-              'You crash in a planet before colonize all start system.'+
-              '<p/><strong>Impact: '+
-               Math.round(proximity*-100)+'uF.</strong> Maximum is 150uF.'
+          if (proximity < -1.5) { // Too hard! Explode.
+            var impactMsg = Math.round(proximity*-100) +
+                            'uF.</strong> Maximum is 150uF.';
+            shipDamage(90,
+              'You crash in a planet before colonize all start system.' +
+              '<p/><strong>Impact: ' + impactMsg,
+              function() {
+                explosions.push({ x:ship.x, y:ship.y, r:10 });
+                playAudio('nearExplosion');
+                msgToUsr(
+                  'Slow down! The <strong>impact was ' + impactMsg +
+                  'You was just about to explode.'
+                );
+              }
             );
-            else msgToUsr(
-              'Slow down! The <strong>impact was '+
-               Math.round(proximity*-100)+'uF.</strong>, maximum is 150uF. '+
-              'You was just about to explode.'
+          } else if ( distP2P(ship, landingPos(ship, p)).d > 15 ) {
+            shipDamage(50,
+              'You crash in a planet before colonize all start system.' +
+              '<p/><strong>Bad angle.</strong>',
+              function() {
+                explosions.push({ x:ship.x, y:ship.y, r:10 });
+                playAudio('nearExplosion');
+                msgToUsr(
+                  'Trust on your landing autopilot.',
+                  'The landing autopilot needs your collaboration.'
+                );
+              }
             );
-          } else if ( distP2P(ship, landingPos(ship, p)).d > 10 ) {
-            ship.life -= 50;
-            explosions.push({ x:ship.x, y:ship.y, r:10 });
-            playAudio('nearExplosion');
-            if (ship.life < 0) shipDie(
-              'You crash in a planet before colonize all start system.'+
-              '<p/><strong>Bad angle.</strong>'
-            );
-            else msgToUsr('Trust on your landing autopilot.');
           }
           ship.planet = p;
           ship.rotate = getAngleToPlanet(ship, p);
@@ -199,27 +203,32 @@ if (shipAlive) {
 cannons.forEach(function(cannon){
   updatePosition(cannon);
   if (cannon.build<10) cannon.build += 0.02;
-  var shipAngle = getAngleToPlanet(ship, cannon.planet);
-  // Remove near to zero jump (useless complete turn the ship)
-  if ( shipAngle < pi/2 && cannon.rotate > pi*1.5 ) cannon.rotate -= completeRad;
-  if ( shipAngle > pi*1.5 && cannon.rotate < pi/2 ) cannon.rotate += completeRad;
-  // Adjust ship rotation
-  if ( shipAngle-cannon.rotate > 0.02 ) cannon.rotate += 0.01;
-  else if ( shipAngle-cannon.rotate > 0.01 ) cannon.rotate += 0.003;
-  if ( shipAngle-cannon.rotate < -0.02 ) cannon.rotate -= 0.01;
-  else if ( shipAngle-cannon.rotate < -0.01 ) cannon.rotate -= 0.003;
-  // Shot!
-  if ( abs(shipAngle-cannon.rotate) < 0.2    // target locked
-       && (now()-cannon.lastShot) > secs(3)  // cannon loaded
-       && cannon.build >= 10                 // is operational
+  // Rotate to find the target
+  if ( cannon.build >= 10                    // is operational
        && distP2P(cannon,ship).d < 900       // not so distant
+       && shipAlive                          // obvious...
+       && ship.planet != cannon.planet       // ship is not here
      ) {
-    cannon.lastShot = now();
-    newMissile(1, cannon.x, cannon.y,
-      cannon.planet.vx + cos(cannon.rotate) * 4,
-      cannon.planet.vy + sin(cannon.rotate) * 4
-    );
-    playAudio('gun');
+    var shipAngle = getAngleToPlanet(ship, cannon.planet);
+    // Remove near to zero jump (useless complete turn the ship)
+    if ( shipAngle < pi/2 && cannon.rotate > pi*1.5 ) cannon.rotate -= completeRad;
+    if ( shipAngle > pi*1.5 && cannon.rotate < pi/2 ) cannon.rotate += completeRad;
+    // Adjust ship rotation
+    if ( shipAngle-cannon.rotate > 0.02 ) cannon.rotate += 0.01;
+    else if ( shipAngle-cannon.rotate > 0.01 ) cannon.rotate += 0.003;
+    if ( shipAngle-cannon.rotate < -0.02 ) cannon.rotate -= 0.01;
+    else if ( shipAngle-cannon.rotate < -0.01 ) cannon.rotate -= 0.003;
+    // Shot!
+    if ( abs(shipAngle-cannon.rotate) < 0.2    // target locked
+         && (now()-cannon.lastShot) > secs(3)  // cannon loaded
+       ) {
+      cannon.lastShot = now();
+      newMissile(1, cannon.x, cannon.y,
+        cannon.planet.vx + cos(cannon.rotate) * 4,
+        cannon.planet.vy + sin(cannon.rotate) * 4
+      );
+      playAudio('gun');
+    }
   }
 });
 
@@ -277,6 +286,16 @@ missiles.forEach(function(m) {
     missiles = missiles.remove(m);
     explosions.push({ x:m.x, y:m.y, r:4 });
   }
+  if ( m.o!=0 && distP2P(ship,m).d < ship.r + m.r ) {
+    missiles = missiles.remove(m);
+    shipDamage( 25,
+      'Your shields was not enough for this missile.',
+      function() {
+        playAudio('nearExplosion');
+        explosions.push({ x:m.x, y:m.y, r:20 });
+      }
+    );
+  }
 });
 
 // Update boids positions:
@@ -304,12 +323,13 @@ boids.forEach(function(b){
           if ( shipAlive ) {
             if ( b.o == 0 ) addCrew(b);     // is one of the player's boids
             else {                          // enemy boid attacks the ship
-              ship.life -= 1;
-              explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
-              if (ship.life < 0) shipDie(
-                'Enemy boids has destroyed your ship.'
+              shipDamage(1,
+                'Enemy boids has destroyed your ship.',
+                function() {
+                  explosions.push({ x:b.x, y:b.y, r:2, inc:.2 });
+                  msgToUsr('Enemy boids are attacking the ship!');
+                }
               );
-              else msgToUsr('Enemy boids are attacking the ship!');
             }
           }
         }

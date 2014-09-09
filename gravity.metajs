@@ -173,6 +173,18 @@ try {
   }
 } catch(e) { }
 
+var shipDamage = function(points, dieMsg, aliveFunc) {
+  ship.life -= points;
+  if (ship.life <= 0) {
+    ship.life = 0;
+    playAudio('nearExplosion');
+    explosions.push({ x:ship.x, y:ship.y, r:20 });
+    shipDie(dieMsg);
+    return false;
+  }
+  if (aliveFunc) aliveFunc();
+};
+
 var shipDie = function(txt, showNow) {
   playAudio('nearExplosion');
   shipAlive = false;
@@ -231,6 +243,7 @@ ctrlClose.onclick = function() {
 })();
 
 var boidsOnPlanet = function(p) {
+  if (!p) return [];
   var list = [];
   boids.forEach(function(b){ if(b.planet==p) list.push(b) });
   return list;
