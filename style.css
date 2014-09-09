@@ -82,6 +82,7 @@ body {
   border: 1px solid #034;
   border-radius: 4px;
   opacity: 1;
+  transition: 0.4s;
 }
 .pix15 .progress i {
   font-size: 14px;
