@@ -22,7 +22,7 @@ ctx.clearRect(0,0,w,h);
 ctxMap.clearRect(0,0,map.width,map.height);
 
 // Stars
-//ctx.putImageData(imgDataObj, 0, 0);
+ctx.putImageData(imgDataObj, 0, 0);
 
 // Draw missiles
 missiles.forEach(function(m) {
@@ -80,8 +80,9 @@ var sunRayLength = sunRayZoom * sun.r * 3;
 if ( qualityLevel < 3 ) {
   grd = ctx.createRadialGradient(vCX, vCY, 0, vCX, vCY, sunRayLength);
   grd.addColorStop(0, 'rgb('+sun.c[0]+')');
-  grd.addColorStop(0.2, 'rgba('+sun.c[0]+',0.5');
-  grd.addColorStop(1, 'rgba(0,0,0,0.5)');
+  grd.addColorStop(0.2, 'rgba('+sun.c[0]+',0.5)');
+  grd.addColorStop(1, 'rgba('+sun.c[0]+',0)'); // with stars
+  // grd.addColorStop(1, 'rgba(0,0,0,0.5)'); // without stars
   ctx.fillStyle = grd;
 } else {
   sunRayLength = sunRayZoom * sun.r * 2;

@@ -208,6 +208,21 @@ ctrlClose.onclick = function() {
   ctrlBox.style.display = 'none';
 };
 
+var julia = function(x, y) {
+  var newX, newY, c=.52;
+  x /= w/2;
+  y /= w/2;
+  for (var i = 1; i < 255; i++) {
+    var x2 = x*x, y2 = y*y;
+    if(x2 + y2 > 4) break;
+    newX = x2 - y2 + -c;
+    newY = 2*x*y + c;
+    x = newX;
+    y = newY;
+  }
+  return i;
+};
+
 (window.onresize = function(e) {
   if (vCX==null) {
     vCX = planets.p2a.d/2;
@@ -219,13 +234,16 @@ ctrlClose.onclick = function() {
   map.cy = (map.height = mapBox.clientHeight - 10) / 2;
   ctxMap.fillStyle = '#333';
   ctxMap.fillRect (0,0,map.width,map.height);
-  log(w,h, map.width,map.height);
-  /*
-  log( 'resize', scrCX,w, scrCY,h ); // debug
   imgDataObj = ctx.getImageData(0,0,w,h);
   imgData = imgDataObj.data;
   for (var x=-scrCX; x<scrCX; x++) {
     for (var y=-scrCY; y<scrCY; y++) {
+      var i = w*(y+scrCY) + x+scrCX,
+          alpha = julia(x,y),
+          color = rand() < -(0.5-alpha/2550) ? 255 : 0;
+      imgData[i*4+0] = imgData[i*4+1] = imgData[i*4+2] = color;
+      imgData[i*4+3] = alpha*2;
+      /*
       var i = w*(y+scrCY) + x+scrCX,
           j = y * x + start,
           v1 = (x*x/3+y*y-3e4) / 20,
@@ -237,8 +255,9 @@ ctrlClose.onclick = function() {
         imgData[i*4+3] = v2<5 ? v2*70 : v2*17
         //imgData[i*4+3] = (1-(abs(j)%(x*x+y*y-1e4)/400)) * 255;
       }
+      */
     }
-  }*/
+  }
 })();
 
 var boidsOnPlanet = function(p) {
