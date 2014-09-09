@@ -176,6 +176,7 @@ if (shipAlive) {
           }
           ship.planet = p;
           ship.rotate = getAngleToPlanet(ship, p);
+          playAudio('landing');
         }
       }
     }

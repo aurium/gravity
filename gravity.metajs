@@ -380,9 +380,11 @@ var buildCannonIfCan = function(planet) {
 }
 
 var destroyCannon = function(cannon) {
+  if (!cannon) return false;
   newExplosion(cannon, true, 20);
   if ( ownerOfPlanet(cannon.planet) == 1 ) cannon.build = -5;
   else cannons = cannons.remove(cannon);
+  return true;
 };
 
 var newMissile = function(o, x,y, vx,vy) {
@@ -449,7 +451,9 @@ var onUpdateBoidsOnPlanet = function(eventType, planet) {
   buildCannonIfCan(planet);
   switch (eventType) {
     case 'born': /* noting more to say */ break;
-    case 'die': /* noting more to say */ break;
+    case 'die':
+      if ( ownerOfPlanet(planet)==0 ) destroyCannon( getCannonFromPlanet(planet) );
+      break;
     case 'conflict':
       msgToUsr(
         'A green died with honor.',
