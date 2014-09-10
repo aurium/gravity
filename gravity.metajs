@@ -279,7 +279,6 @@ var setPxLight = function(x, y, alpha) {
   bg.style.left = -(bg.width-w)/2 +'px';
   bg.style.top = -(bg.height-h)/2 +'px';
   ctxBg.clearRect(0,0,bg.width,bg.height);
-  log(bg.height, bg.style.height);
   ctxBg.putImageData(imgDataObj, 0, 0);
 })();
 
@@ -302,10 +301,12 @@ var planetGroups = function() {
   var p, groups = { greens:[], reddish:[], conflict:[], total:0 };
   for ( var id in planets ) {
     p = planets[id];
-    groups.total++;
-    if (ownerOfPlanet(p)==0) groups.greens.push(p);
-    else if (ownerOfPlanet(p)==1) groups.reddish.push(p);
-    else groups.conflict.push(p);
+    if (p!=sun) {
+      groups.total++;
+      if (ownerOfPlanet(p)==0) groups.greens.push(p);
+      else if (ownerOfPlanet(p)==1) groups.reddish.push(p);
+      else groups.conflict.push(p);
+    }
   }
   return groups;
 }
@@ -491,13 +492,12 @@ var msgToUsr = function() {
 };
 
 var onUpdateBoidsOnPlanet = function(eventType, planet) {
-  var owner;
-  buildCannonIfCan(planet);
+  var owner = ownerOfPlanet(planet);
+  if ( owner==0 ) destroyCannon( getCannonFromPlanet(planet) );
+  else buildCannonIfCan(planet);
   switch (eventType) {
     case 'born': /* noting more to say */ break;
-    case 'die':
-      if ( ownerOfPlanet(planet)==0 ) destroyCannon( getCannonFromPlanet(planet) );
-      break;
+    case 'die': /* noting more to say */ break;
     case 'conflict':
       msgToUsr(
         'A green died with honor.',
@@ -521,7 +521,6 @@ var onUpdateBoidsOnPlanet = function(eventType, planet) {
         );
       break;
     case 'enemyLanding':
-      owner = ownerOfPlanet(planet);
       if ( owner == 1 ) {
         if ( lastMsgToUsr < now()-secs(6) )
           msgToUsr( '',
@@ -538,17 +537,38 @@ var onUpdateBoidsOnPlanet = function(eventType, planet) {
       }
       break;
   }
-  var totPlanets=0, totMine=0, totEnemy=0, totConflict=0, p;
-  for ( var id in planets ) {
-    p = planets[id];
-    totPlanets++;
-    owner = ownerOfPlanet(p);
-    if (owner>0 || owner<1) totConflict++;
-    else if (owner==0) totMine++;
-    else if (owner==1) totEnemy++;
-  }
-  if ( totMine == totPlanets ) return playerWin.style.display = block;
-  if ( totMine == 0 && totConflict == 0 ) return shipDie('You lose all your planets');
+  var pg = planetGroups();
+  if ( pg.greens.length == pg.total )
+    setTimeout(youWin, secs(.5));
+  if ( pg.greens.length == 0 && pg.conflict.length == 0 )
+    shipDie('You lose all your planets');
+};
+
+var youWin = function() {
+  playAudio('win');
+  pause = true; //TODO: set "win", not "pause".
+  var time = new Date( now() - start ),
+      h = time.getUTCHours(),
+      m = time.getUTCMinutes(),
+      timeStr = '';
+  if (     h == 1 ) timeStr += 'one hour';
+  else if ( h > 0 ) timeStr += h+' hours';
+  if ( h>0 && m>0 ) timeStr += ' and ';
+  if (     m == 1 ) timeStr += 'one minute';
+  else if ( m > 0 ) timeStr += m+' minutes';
+  finishTime.innerHTML = timeStr;
+  playerWin.style.display = 'block';
+  var encUrl = encodeURIComponent('http://js13kgames.com/entries/gravity');
+  winTwitt.href = 'https://twitter.com/intent/tweet?original_referer='+ encUrl +
+    '&text=' + encodeURIComponent(
+      'Check out Gravity, at @js13kGames compo! '+
+      'I purged the reddish threat from my star system in '+timeStr+'.'
+    ) + '&url='+encUrl
+  winFB.onclick =
+  winTwitt.onclick =
+  winBMGoogle.onclick = function() {
+    breakingNewsBt.style.display = 'inline-block';
+  };
 };
 
 var ticCounter = 0, framesPerSec = 30, lastFrame = now();
@@ -560,6 +580,7 @@ setInterval(function() {
 }, 1000/framesPerSec);
 
 d.onclick = function (ev) {
+  if (d.fullScreenEnabled) b.requestFullscreen();
   if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
   if (d.webkitFullscreenEnabled) b.webkitRequestFullScreen();
 };

@@ -248,6 +248,14 @@ b {
   box-shadow: inset 0 0 40px #666, 0 0 40px 10px rgba(255,255,255,0.6);
   opacity: 0.8;
 }
+.pix20 .dialog {
+  width: 800px;
+  height: 400px;
+  padding: 20px 40px;
+  margin: -220px 0 0 -440px;
+  font-size: 200%;
+  box-shadow: inset 0 0 80px #666, 0 0 80px 20px rgba(255,255,255,0.6);
+}
 
 .dialog h1 {
   text-align: center;
@@ -293,9 +301,32 @@ b {
   top: 80px;
   right: 60px;
 }
+.pix20 #ctrlBox div {
+  position: absolute;
+  top: 160px;
+  right: 120px;
+}
 
 #ctrlBox label {
   display: inline-block;
   padding: 8px 0;
+}
+
+#playerWin.breakingNews {
+  font-size: 90%;
+  width: 440px;
+  height: 250px;
+}
+.pix20 #playerWin.breakingNews {
+  width: 860px;
+  height: 430px;
+  padding: 20px 40px;
+  margin: -240px 0 0 -450px;
+  font-size: 160%;
+}
+
+#playerWin h3 {
+  font-size: 120%;
+  margin: 0;
 }
 

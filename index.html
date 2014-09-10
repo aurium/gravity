@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta id="viewport" name="viewport" content="width=device-width, user-scalable=no, initial-scale=0.75" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Gravity</title>
     <link rel="stylesheet" type="text/css" href="style.min.css" />
   </head>
@@ -13,15 +15,42 @@
       <div id="mapBox">
         <canvas id="map"></canvas>
       </div>
+
       <div class="progress"><i id="life"></i></div>
+
       <b id="btW"><i></i></b>
       <b id="btU"></b>
       <b id="btL"></b>
       <b id="btR"></b>
       <b id="ctrl"></b>
+
       <div id="deadMsg" class="dialog">
         <h1>Game Over. ☹</h1>
       </div>
+
+      <div id="playerWin" class="dialog">
+        <h1>You Win! 😄</h1>
+        You protect the star system from the reddish threat in
+        <span id="finishTime"></span>.
+        <p/>
+        Notify your allies!
+        <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fjs13kgames.com%2Fentries%2Fgravity&text=Check%20out%20Gravity%20-%2013kb%20entry%20by%20%40aurium%20for%20the%20%40js13kGames%20compo!&url=http%3A%2F%2Fjs13kgames.com%2Fentries%2Fgravity" target="_blank" id="winTwitt">Twitt</a>,
+        <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fjs13kgames.com%2Fentries%2Fgravity" target="_blank" id="winFB">FB Share</a>, or
+        <a href="http://www.google.com/bookmarks/mark?op=add&bkmk=http%3A%2F%2Fjs13kgames.com%2Fentries%2Fgravity&title=Gravity&annotation=Check%20out%20Gravity%20-%2013kb%20entry%20by%20%2Baurium%20for%20the%20js13kGames%20compo!&labels=game,js13k&service=bookmarks" target="_blank" id="winBMGoogle">Bookmark</a>.
+        <a class="bt" id="breakingNewsBt" style="display:none" onclick="
+          playerWin.className += ' breakingNews';
+          this.style.display = 'none';
+          breakingNews.style.display = 'block';
+        ">Breaking News!</a>
+        <div id="breakingNews" style="display:none">
+        <h3>Breaking News</h3>
+         Archaeologists has discovered reddish fossils with ancient green scriptures.
+         They reached the conclusion that reddish was not invaders,
+         they are survivors from an ethnic war, who escaped from our homeworld
+         a millennium ago. <i>Nice detail to know right now...</i>
+        </div>
+      </div>
+
       <div id="ctrlBox" class="dialog">
         <h1>Configuration</h1>
         <small>Render quality:</small>
@@ -36,16 +65,9 @@
         </div>
         <a class="bt" id="ctrlClose">Close</a>
       </div>
-      <div id="playerWin" class="dialog">
-        <h1>You Win! 😄</h1>
-        You protect you star system from the reddish threat...
-        <h3>Breaking News</h3>
-         Archaeologists has discovered reddish fossils with ancient green scriptures.
-         They reached the conclusion that reddish was not invaders,
-         they are survivors from an ethnic war, who escaped from our homeworld
-         a millennium ago. <i>Nice detail to know right now...</i>
-      </div>
+
       <div id="msgBox"></div>
+
       <script src="gravity.min.js"></script>
     </div>
   </body>
