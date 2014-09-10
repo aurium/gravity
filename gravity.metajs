@@ -56,6 +56,8 @@ var distP2P = function(p1, p2) {
 };
 
 var ctx = c.getContext('2d'),
+    ctxBg = bg.getContext('2d'),
+    starX=0, starY=0,
     ctxMap = map.getContext('2d'),
     d = document,
     b = d.body,
@@ -227,8 +229,9 @@ var pseudoRandPx = function(x, y, probability) {
   return (x*y+start) % ((((x+1e4)/(y+1e3))%77)+13) < (probability||1);
 };
 
+var bgZFactor = 1.8;
 var coord2index = function(x, y) {
-  var index = w*(y+scrCY) + x+scrCX;
+  var index = w*bgZFactor*(y+h*(bgZFactor/2)) + x+w*(bgZFactor/2);
   if (index < 0) index = 0;
   return index;
 };
@@ -242,23 +245,24 @@ var setPxLight = function(x, y, alpha) {
 };
 
 (window.onresize = function(e) {
-  if (vCX==null) {
+  if (vCX==null) { // set initial view center near to the home planet.
     vCX = planets.p2a.d/2;
     vCY = planets.p2a.d/2;
   }
+  // Read the screen size, set canvas size equal to screen, and set its center.
   scrCX = (c.width = w = d.documentElement.clientWidth) / 2;
   scrCY = (c.height = h = d.documentElement.clientHeight) / 2;
+  // Set the same map properties
   map.cx = (map.width = mapBox.clientWidth - 10) / 2;
   map.cy = (map.height = mapBox.clientHeight - 10) / 2;
-  ctxMap.fillStyle = '#333';
-  ctxMap.fillRect (0,0,map.width,map.height);
-  imgDataObj = ctx.getImageData(0,0,w,h);
+  imgDataObj = ctxBg.createImageData(w*bgZFactor,h*bgZFactor);
   imgData = imgDataObj.data;
-  for (var x=-scrCX; x<scrCX; x++) {
-    for (var y=-scrCY; y<scrCY; y++) {
-      //var i = coord2index(x,y),
-      var alpha = julia(x,y)/255,
-          color = rand() < -(0.5-alpha/2550) ? 255 : 0;
+  for (var x=-w*(bgZFactor/2); x<w*(bgZFactor/2); x++) {
+    for (var y=-h*(bgZFactor/2); y<h*(bgZFactor/2); y++) {
+      var alpha = julia(x,y)/255;
+      if (alpha>.5 && pseudoRandPx(x,y,.8)) {
+        setPxLight(x,y, alpha/2 );
+      }
       if (pseudoRandPx(x,y,.2)) {
         setPxLight(x,y, alpha );
         if (alpha>.5) {
@@ -268,21 +272,13 @@ var setPxLight = function(x, y, alpha) {
           setPxLight(x, y+1, alpha/2);
         }
       }
-      /*
-      var i = w*(y+scrCY) + x+scrCX,
-          j = y * x + start,
-          v1 = (x*x/3+y*y-3e4) / 20,
-          v2 = abs(j) % v1;
-      if ( v2 < 15 ) {
-        imgData[i*4+0] = 155 + ( v2%3<0.5 ? 80 : 0 )
-        imgData[i*4+1] = 155 + ( v2%4<0.5 ? 90 : 0 )
-        imgData[i*4+2] = 160 + ( v2%2<0.5 ? 90 : 0 )
-        imgData[i*4+3] = v2<5 ? v2*70 : v2*17
-        //imgData[i*4+3] = (1-(abs(j)%(x*x+y*y-1e4)/400)) * 255;
-      }
-      */
     }
   }
+  bg.style.width = (bg.width = Math.round(w*bgZFactor))+'px';
+  bg.style.height = (bg.height = Math.round(h*bgZFactor))+'px';
+  ctxBg.clearRect(0,0,bg.width,bg.height);
+  log(bg.height, bg.style.height);
+  ctxBg.putImageData(imgDataObj, 0, 0);
 })();
 
 var boidsOnPlanet = function(p) {
@@ -551,9 +547,10 @@ var onUpdateBoidsOnPlanet = function(eventType, planet) {
   if ( totMine == 0 && totConflict == 0 ) return shipDie('You lose all your planets');
 };
 
-var ticCounter = 0, framesPerSec = 30;
-
+var ticCounter = 0, framesPerSec = 30, lastFrame = now();
 setInterval(function() {
+  //msgToUsr( Math.round( 1000/(now()-lastFrame) ) );
+  lastFrame = now();
   //include objects-update
   //include draw
 }, 1000/framesPerSec);

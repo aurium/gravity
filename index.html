@@ -7,43 +7,46 @@
     <link rel="stylesheet" type="text/css" href="style.min.css" />
   </head>
   <body>
-    <canvas id="c"></canvas>
-    <div id="mapBox">
-      <canvas id="map"></canvas>
-    </div>
-    <div class="progress"><i id="life"></i></div>
-    <b id="btW"><i></i></b>
-    <b id="btU"></b>
-    <b id="btL"></b>
-    <b id="btR"></b>
-    <b id="ctrl"></b>
-    <div id="deadMsg" class="dialog">
-      <h1>Game Over. ☹</h1>
-    </div>
-    <div id="ctrlBox" class="dialog">
-      <h1>Configuration</h1>
-      <small>Render quality:</small>
-      <dir>
-        <label><input type="radio" name="quality" id="ctrlQ1"> Best </label> <br>
-        <label><input type="radio" name="quality" id="ctrlQ2"> No atmosphere </label> <br>
-        <label><input type="radio" name="quality" id="ctrlQ3"> Flat colors </label>
-      </dir>
-      <div>
-        <label><input type="checkbox" id="ctrlM"> Music </label> <br>
-        <label><input type="checkbox" id="ctrlS"> Sound Effects </label>
+    <div id="wrap">
+      <canvas id="bg"></canvas>
+      <canvas id="c"></canvas>
+      <div id="mapBox">
+        <canvas id="map"></canvas>
       </div>
-      <a class="bt" id="ctrlClose">Close</a>
+      <div class="progress"><i id="life"></i></div>
+      <b id="btW"><i></i></b>
+      <b id="btU"></b>
+      <b id="btL"></b>
+      <b id="btR"></b>
+      <b id="ctrl"></b>
+      <div id="deadMsg" class="dialog">
+        <h1>Game Over. ☹</h1>
+      </div>
+      <div id="ctrlBox" class="dialog">
+        <h1>Configuration</h1>
+        <small>Render quality:</small>
+        <dir>
+          <label><input type="radio" name="quality" id="ctrlQ1"> Best </label> <br>
+          <label><input type="radio" name="quality" id="ctrlQ2"> No atmosphere </label> <br>
+          <label><input type="radio" name="quality" id="ctrlQ3"> Flat colors </label>
+        </dir>
+        <div>
+          <label><input type="checkbox" id="ctrlM"> Music </label> <br>
+          <label><input type="checkbox" id="ctrlS"> Sound Effects </label>
+        </div>
+        <a class="bt" id="ctrlClose">Close</a>
+      </div>
+      <div id="playerWin" class="dialog">
+        <h1>You Win! 😄</h1>
+        You protect you star system from the reddish threat...
+        <h3>Breaking News</h3>
+         Archaeologists has discovered reddish fossils with ancient green scriptures.
+         They reached the conclusion that reddish was not invaders,
+         they are survivors from an ethnic war, who escaped from our homeworld
+         a millennium ago. <i>Nice detail to know right now...</i>
+      </div>
+      <div id="msgBox"></div>
+      <script src="gravity.min.js"></script>
     </div>
-    <div id="playerWin" class="dialog">
-      <h1>You Win! 😄</h1>
-      You protect you star system from the reddish threat...
-      <h3>Breaking News</h3>
-       Archaeologists has discovered reddish fossils with ancient green scriptures.
-       They reached the conclusion that reddish was not invaders,
-       they are survivors from an ethnic war, who escaped from our homeworld
-       a millennium ago. <i>Nice detail to know right now...</i>
-    </div>
-    <div id="msgBox"></div>
-    <script src="gravity.min.js"></script>
   </body>
 </html>
