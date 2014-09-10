@@ -91,7 +91,7 @@ var ctx = c.getContext('2d'),
       p2a:  { m:30, c:['0,100,180','0,180,220','50,220,255'],
               r:40, d:orbDist2+rand(50), v:orbVel2, a:0.0+rand()*.8 },
       m2a1: { m:20, c:['100,100,100','200,200,200','250,250,250'],
-              r:25,  d:130+rand(10),  v:orbVel1*4,  a:rand(7), p:'p2a' },
+              r:25,  d:130+rand(10),  v:orbVel1*3,  a:rand(7), p:'p2a' },
 
       p2b:  { m:30, c:randColor(100,60,80,80,0,120),
               r:35+rand(10), d:orbDist2+rand(50), v:orbVel2, a:1.5+rand()*.8 },
