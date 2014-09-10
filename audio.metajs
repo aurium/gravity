@@ -1,7 +1,7 @@
 var RIFFWAVE;
 // include riffwave
 
-var makeAudio = function(length, toneIni, toneEnd, noise, pitch, gainFn) {
+var makeAudio = window.makeAudio = function(length, toneIni, toneEnd, noise, pitch, gainFn) {
   if (!pitch) pitch = 1;
   gainFn = {
     line: function(i,length){ return 1-i/length },
@@ -23,14 +23,6 @@ var makeAudio = function(length, toneIni, toneEnd, noise, pitch, gainFn) {
   player.src = wav.dataURI;
   return player;
 }
-
-playAudio = function(soundName) {
-  if (allowSound) playAudio[soundName].play();
-};
-playAudio.nearExplosion = makeAudio(10000, 150, 50, 1, 1);
-playAudio.distantExplosion = makeAudio(10000, 150, 50, .3, 1);
-playAudio.landing = makeAudio(1000, 150, 150, 0, .9, 'triangle');
-playAudio.gun = makeAudio(4000, 1500, 600, 0.2, 1, 'triangle');
 
 // makeMusic -- build a RIFFWAVE music based on a score simplifyed notation
 // param music is a string each 3 char means:
@@ -70,7 +62,7 @@ playAudio.gun = makeAudio(4000, 1500, 600, 0.2, 1, 'triangle');
 //   * G5# = Y
 //   * A5  = Z lá
 // * separator: an ignored char
-var makeMusic = function(sampleRate, bpm, pitch, music) {
+var makeMusic = window.makeMusic = function(sampleRate, bpm, pitch, music) {
   var pitchFn = function(i,length){
     return ( (i<length/4) ? i/(length/4) : 1-(i-(length/4))/(length*3/4) ) * pitch;
   }
@@ -97,6 +89,16 @@ var makeMusic = function(sampleRate, bpm, pitch, music) {
   player.src = wav.dataURI;
   return player;
 }
+
+
+playAudio = function(soundName) {
+  if (allowSound) playAudio[soundName].play();
+};
+playAudio.nearExplosion = makeAudio(10000, 150, 50, 1, 1);
+playAudio.distantExplosion = makeAudio(10000, 150, 50, .3, 1);
+playAudio.landing = makeAudio(1000, 150, 150, 0, .9, 'triangle');
+playAudio.gun = makeAudio(4000, 1500, 600, 0.2, 1, 'triangle');
+playAudio.win = makeMusic(2000, 200, 1, '3N 3N 3N 4P 2- 3P 3P 3P 4R 2- 3R 3R 3R 6T');
 
 setTimeout(function(){
   var superman = '4L 3L 3E 3L 5L 1- 4Q 4L 5E 1- 4L 3L 3E 3L 5L 1- 4Q 3P 5P ';
