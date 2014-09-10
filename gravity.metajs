@@ -398,7 +398,9 @@ var releaseCrew = function() {
 };
 
 var newCannon = function(planet, rotate) {
-  var c = {o:1, planet:planet, rotate:rotate||0, r:10, build:0, lastShot:0};
+  var c = {
+    o:1, planet:planet, rotate:rotate||rand(completeRad), r:10, build:0, lastShot:0
+  };
   cannons.push(c);
   return c;
 };
