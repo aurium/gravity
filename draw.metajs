@@ -14,12 +14,17 @@ if ( z < 1 ) {
 }
 
 // Stars
-var moveBgX = (w*bgZFactor - w)/2;
-var moveBgY = (h*bgZFactor - h)/2;
 starX = ( -focus.x + starX*5 ) / 6;
 starY = ( -focus.y + starY*5 ) / 6;
-bg.style.left = Math.round(starX/(6/bgZFactor) - moveBgX) + 'px';
-bg.style.top  = Math.round(starY/(6/bgZFactor) - moveBgY) + 'px';
+bg.style.transform =
+bg.style.oTransform =
+bg.style.msTransform =
+bg.style.mozTransform =
+bg.style.webkitTransform =
+  'translate('+
+  ( starX/(6/bgZFactor) )+'px,'+
+  ( starY/(6/bgZFactor) )+'px)'+
+  ' rotate(7deg)';
 
 var mapZ = (map.height/biggerPlanetD)/2.2;
 

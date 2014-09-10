@@ -276,6 +276,8 @@ var setPxLight = function(x, y, alpha) {
   }
   bg.style.width = (bg.width = Math.round(w*bgZFactor))+'px';
   bg.style.height = (bg.height = Math.round(h*bgZFactor))+'px';
+  bg.style.left = -(bg.width-w)/2 +'px';
+  bg.style.top = -(bg.height-h)/2 +'px';
   ctxBg.clearRect(0,0,bg.width,bg.height);
   log(bg.height, bg.style.height);
   ctxBg.putImageData(imgDataObj, 0, 0);
