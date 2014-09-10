@@ -210,9 +210,9 @@ ctrlClose.onclick = function() {
 
 var julia = function(x, y) {
   var newX, newY, c=.52;
-  x /= w/2;
-  y /= w/2;
-  for (var i = 1; i < 255; i++) {
+  x /= w*.6;
+  y /= w*.6;
+  for (var i = 1; i <= 255; i++) {
     var x2 = x*x, y2 = y*y;
     if(x2 + y2 > 4) break;
     newX = x2 - y2 + -c;
@@ -221,6 +221,24 @@ var julia = function(x, y) {
     y = newY;
   }
   return i;
+};
+
+var pseudoRandPx = function(x, y, probability) {
+  return (x*y+start) % ((((x+1e4)/(y+1e3))%77)+13) < (probability||1);
+};
+
+var coord2index = function(x, y) {
+  var index = w*(y+scrCY) + x+scrCX;
+  if (index < 0) index = 0;
+  return index;
+};
+
+var setPxLight = function(x, y, alpha) {
+  var i = coord2index(x,y);
+  imgData[i*4+0] = 255*alpha;
+  imgData[i*4+1] = 400*alpha;
+  imgData[i*4+2] = 600*alpha;
+  imgData[i*4+3] = alpha*255;
 };
 
 (window.onresize = function(e) {
@@ -238,11 +256,18 @@ var julia = function(x, y) {
   imgData = imgDataObj.data;
   for (var x=-scrCX; x<scrCX; x++) {
     for (var y=-scrCY; y<scrCY; y++) {
-      var i = w*(y+scrCY) + x+scrCX,
-          alpha = julia(x,y),
+      //var i = coord2index(x,y),
+      var alpha = julia(x,y)/255,
           color = rand() < -(0.5-alpha/2550) ? 255 : 0;
-      imgData[i*4+0] = imgData[i*4+1] = imgData[i*4+2] = color;
-      imgData[i*4+3] = alpha*2;
+      if (pseudoRandPx(x,y,.2)) {
+        setPxLight(x,y, alpha );
+        if (alpha>.5) {
+          setPxLight(x-1, y, alpha/2);
+          setPxLight(x+1, y, alpha/2);
+          setPxLight(x, y-1, alpha/2);
+          setPxLight(x, y+1, alpha/2);
+        }
+      }
       /*
       var i = w*(y+scrCY) + x+scrCX,
           j = y * x + start,
