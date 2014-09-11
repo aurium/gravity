@@ -156,7 +156,6 @@ var ctx = c.getContext('2d'),
     usrInput = {},
     explosions = [],
     focus = ship,
-    imgDataObj, imgData, imgDataLength,
     gConst = 0.01, //6.674e-11
     pixelRatio = window.devicePixelRatio,
     now = Date.now,
@@ -246,7 +245,7 @@ var coord2index = function(x, y) {
   return index;
 };
 
-var setPxLight = function(x, y, alpha) {
+var setPxLight = function(imgData, x,y, alpha) {
   var i = coord2index(x,y);
   imgData[i*4+0] = 255*alpha;
   imgData[i*4+1] = 400*alpha;
@@ -254,7 +253,20 @@ var setPxLight = function(x, y, alpha) {
   imgData[i*4+3] = alpha*255;
 };
 
-(window.onresize = function(e) {
+var plotStar = function(imgData, x,y, alpha) {
+  setPxLight(imgData, x,y, alpha);
+  setPxLight(imgData, x,y+1, alpha*.6);
+  setPxLight(imgData, x+1,y, alpha*.6);
+  setPxLight(imgData, x+1,y+1, alpha*.6);
+  if (alpha>.5) {
+    setPxLight(imgData, x-1, y+1, alpha/2);
+    setPxLight(imgData, x+2, y,   alpha/2);
+    setPxLight(imgData, x,   y-1, alpha/2);
+    setPxLight(imgData, x+1, y+2, alpha/2);
+  }
+};
+
+(window.onresize = function() {
   if (vCX==null) { // set initial view center near to the home planet.
     vCX = planets.p2a.d/2;
     vCY = planets.p2a.d/2;
@@ -266,23 +278,14 @@ var setPxLight = function(x, y, alpha) {
   map.cx = (map.width = mapBox.clientWidth - 10) / 2;
   map.cy = (map.height = mapBox.clientHeight - 10) / 2;
   // Create the image storage to the stars
-  imgDataObj = ctxBg.createImageData(w*bgZFactor,h*bgZFactor);
-  imgData = imgDataObj.data;
+  var imgDataObj = ctxBg.createImageData(w*bgZFactor,h*bgZFactor);
+  var imgData = imgDataObj.data;
   for (var x=-w*(bgZFactor/2); x<w*(bgZFactor/2); x++) {
     for (var y=-h*(bgZFactor/2); y<h*(bgZFactor/2); y++) {
       var alpha = julia(x,y)/255;
-      if (alpha>.5 && pseudoRandPx(x,y,.8)) {
-        setPxLight(x,y, alpha/2 );
-      }
-      if (pseudoRandPx(x,y,.2)) {
-        setPxLight(x,y, alpha );
-        if (alpha>.5) {
-          setPxLight(x-1, y, alpha/2);
-          setPxLight(x+1, y, alpha/2);
-          setPxLight(x, y-1, alpha/2);
-          setPxLight(x, y+1, alpha/2);
-        }
-      }
+      if (alpha>.6 && pseudoRandPx(x,y,1.5)) plotStar(imgData, x,y, alpha*.4);
+      if (alpha>.4 && pseudoRandPx(x,y,0.7)) plotStar(imgData, x,y, alpha*.5);
+      if (pseudoRandPx(x,y,0.2)) plotStar(imgData, x,y, alpha);
     }
   }
   // Set bg attributes
@@ -628,15 +631,16 @@ var fireWeapon = function () {
 };
 
 var introStep = 1;
-var introNext = window.introNext = function () {
+window.introNext = function () {
   window['introTxt'+introStep++].style.display = 'none';
-  if (introStep<4) window['introTxt'+introStep].style.display = 'block';
-  else {
+  if (introStep<=3) window['introTxt'+introStep].style.display = 'block';
+  if (introStep==3) introNextBt.innerHTML = 'Close';
+  if (introStep==4) {
     intro.style.display = 'none';
     pause = false;
   }
 };
-var pressDialogBt = introNext;
+var pressDialogBt = window.introNext;
 
 d.onkeydown = function (ev) {
   switch (ev.keyCode) {

@@ -24,7 +24,7 @@ bg.style.webkitTransform =
   'translate('+
   ( starX/(6/bgZFactor) )+'px,'+
   ( starY/(6/bgZFactor) )+'px)'+
-  ' rotate(7deg)';
+  ' rotate(13deg)';
 
 var mapZ = (map.height/biggerPlanetD)/2.2;
 
