@@ -120,5 +120,5 @@ setTimeout(function(){
     heart + intro + phrase1 + phrase2 + phrase3 + heart + superman
   );
   music.loop = true;
-  //music.play();
+  music.play();
 }, 100);
