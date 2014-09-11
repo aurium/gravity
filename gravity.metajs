@@ -193,7 +193,16 @@ var shipDie = function(txt, showNow) {
   focus = sun;
   zoom = (h/biggerPlanetD)/2;
   if (!txt) txt = 'You die.'
-  deadMsg.innerHTML += txt +
+  var timeStr = time2str( now() - start );
+  var encUrl = encodeURIComponent('http://js13kgames.com/entries/gravity');
+  var twittHref = 'https://twitter.com/intent/tweet?original_referer='+ encUrl +
+    '&text=' + encodeURIComponent(
+      'Check out Gravity, at @js13kGames compo! '+
+      'I died in '+timeStr+' trying to purge the reddish threat.'
+    ) + '&url='+encUrl
+  deadMsg.innerHTML += txt + '<p/> Notify your allies: ' +
+    '<a href="'+twittHref+'" target="_blank">Twitt</a>, ' +
+    '<a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fjs13kgames.com%2Fentries%2Fgravity" target="_blank" id="winFB">FB Share</a>. ' +
     '<a class="bt" onclick="document.location.reload()">Restart</a>';
   pressDialogBt = function(){ document.location.reload() };
   deadMsg.style.display = 'block';
@@ -546,10 +555,8 @@ var onUpdateBoidsOnPlanet = function(eventType, planet) {
     shipDie('You lose all your planets');
 };
 
-var youWin = function() {
-  playAudio('win');
-  pause = true; //TODO: set "win", not "pause".
-  var time = new Date( now() - start ),
+var time2str = function(milliseconds) {
+  var time = new Date(milliseconds),
       h = time.getUTCHours(),
       m = time.getUTCMinutes(),
       timeStr = '';
@@ -558,6 +565,14 @@ var youWin = function() {
   if ( h>0 && m>0 ) timeStr += ' and ';
   if (     m == 1 ) timeStr += 'one minute';
   else if ( m > 0 ) timeStr += m+' minutes';
+  if ( timeStr == '' ) timeStr = time.getUTCSeconds()+' seconds';
+  return timeStr;
+};
+
+var youWin = function() {
+  playAudio('win');
+  pause = true; //TODO: set "win", not "pause".
+  var timeStr = time2str( now() - start );
   finishTime.innerHTML = timeStr;
   playerWin.style.display = 'block';
   var encUrl = encodeURIComponent('http://js13kgames.com/entries/gravity');
