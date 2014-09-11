@@ -190,6 +190,7 @@ var shipDie = function(txt, showNow) {
   playAudio('nearExplosion');
   shipAlive = false;
   if (!showNow) return setTimeout( function(){ shipDie(txt,true) }, 500 );
+  //TODO: playAudio('death');
   focus = sun;
   zoom = (h/biggerPlanetD)/2;
   if (!txt) txt = 'You die.'
@@ -549,8 +550,10 @@ var onUpdateBoidsOnPlanet = function(eventType, planet) {
       break;
   }
   var pg = planetGroups();
-  if ( pg.greens.length == pg.total )
+  if ( pg.greens.length == pg.total ) {
+    music.pause();
     setTimeout(youWin, secs(.5));
+  }
   if ( pg.greens.length == 0 && pg.conflict.length == 0 )
     shipDie('You lose all your planets');
 };
