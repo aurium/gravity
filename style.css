@@ -121,6 +121,11 @@ body {
   transition: 0s;
 }
 
+w { color: #08C }
+f { color: #E20 }
+r { color: #940 }
+g { color: #479; text-shadow: 0 0 11px #AEF, 0 0 11px #AEF, 0 0 13px #AEF }
+
 b {
   position: fixed;
   bottom: -20px;
@@ -255,6 +260,7 @@ b {
 .dialog h1 {
   text-align: center;
   margin: 0 0 10px 0;
+  opacity: 0.6;
 }
 
 .dialog .bt {
