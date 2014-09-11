@@ -1,4 +1,4 @@
-if (pause) return;
+if (ticCounter>0 && pause) return;
 ticCounter++;
 var p, dist;
 

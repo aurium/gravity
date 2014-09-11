@@ -64,7 +64,7 @@ var ctx = c.getContext('2d'),
     touchable = false,
     qualityLevel = 1,
     allowSound = true,
-    pause = false,
+    pause = true,
     secs = function(num) { return num*1000 },
     //macro orbDist1: 500
     //macro orbDist2: 900
@@ -255,6 +255,7 @@ var setPxLight = function(x, y, alpha) {
   // Set the same map properties
   map.cx = (map.width = mapBox.clientWidth - 10) / 2;
   map.cy = (map.height = mapBox.clientHeight - 10) / 2;
+  // Create the image storage to the stars
   imgDataObj = ctxBg.createImageData(w*bgZFactor,h*bgZFactor);
   imgData = imgDataObj.data;
   for (var x=-w*(bgZFactor/2); x<w*(bgZFactor/2); x++) {
@@ -274,6 +275,7 @@ var setPxLight = function(x, y, alpha) {
       }
     }
   }
+  // Set bg attributes
   bg.style.width = (bg.width = Math.round(w*bgZFactor))+'px';
   bg.style.height = (bg.height = Math.round(h*bgZFactor))+'px';
   bg.style.left = -(bg.width-w)/2 +'px';
@@ -607,8 +609,16 @@ var fireWeapon = function () {
   }
 };
 
-var pressDialogBt = function () {
+var introStep = 1;
+var introNext = window.introNext = function () {
+  window['introTxt'+introStep++].style.display = 'none';
+  if (introStep<4) window['introTxt'+introStep].style.display = 'block';
+  else {
+    intro.style.display = 'none';
+    pause = false;
+  }
 };
+var pressDialogBt = introNext;
 
 d.onkeydown = function (ev) {
   switch (ev.keyCode) {

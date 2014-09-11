@@ -281,6 +281,18 @@ b {
   background: #F55;
 }
 
+#intro {
+  display: block;
+}
+
+#intro div {
+  font-size: 90%;
+}
+
+#introTxt2, #introTxt3 {
+  display: none;
+}
+
 #deadMsg {
   background: #EAA;
   box-shadow: inset 0 0 40px #944, 0 0 40px 10px rgba(255,255,255,0.6);
