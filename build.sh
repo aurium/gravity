@@ -75,18 +75,13 @@ else
 
   size=$( ls -l $zip | sed -r "s/.* $USER ([0-9]+) .*/\1/" )
   sizeK=$( ls -lh $zip | sed -r 's/.* ([0-9,.]+K) .*/\1/' )
-  echo "=> $sizeK ($size bytes)"
-  if [ $size -lt $((13*1024)) ]; then
-    (
-      which espeak &&
-      espeak -v en -s 150 "The package is o.k, with $sizeK" &
-    ) >/dev/null 2>&1
-  else
-    (
-      which espeak &&
-      espeak -v en -s 150 "The package bigger than the limit, with $size bytes" &
-    ) >/dev/null 2>&1
-  fi
+  test $size -lt $((13*1024)) \
+    && valuation="The package is o.k, with $sizeK." \
+    || valuation="The package bigger than the limit, with $sizeK."
+  echo "=> $valuation ($size of $((13*1024)) bytes)"
+  ( which espeak &&
+    espeak -v en -s 150 "$valuation" &
+  ) >/dev/null 2>&1
 
 fi
 
