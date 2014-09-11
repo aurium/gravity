@@ -73,8 +73,6 @@ else
   test -e $zip && rm $zip
   zip $zip gravity.min.js index.html style.min.css
 
-  mv gravity.js gravity.min.js # debug mode
-
   size=$( ls -l $zip | sed -r "s/.* $USER ([0-9]+) .*/\1/" )
   sizeK=$( ls -lh $zip | sed -r 's/.* ([0-9,.]+K) .*/\1/' )
   echo "=> $sizeK ($size bytes)"
@@ -91,6 +89,8 @@ else
   fi
 
 fi
+
+mv gravity.js gravity.min.js # debug mode
 
 ### Daemon #####################################################################
 
