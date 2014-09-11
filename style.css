@@ -80,11 +80,6 @@ body {
   border-radius: 5px;
   padding: 1px 3px 1px 1px;
 }
-/*
-.progress.weapon { top: 40px }
-.pix15 .progress.weapon { top: 43px }
-.pix20 .progress.weapon { top: 46px }
-*/
 
 .progress i {
   font-size: 11px;
