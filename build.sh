@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+if [ x$DEBUG == x1 -o x$DEBUG == xon -o x$DEBUG == xtrue ]; then
+  debug=true
+else
+  debug=false
+fi
+
 cd "$(dirname "$0")"
 zip=/tmp/gravity.zip
 
@@ -25,6 +31,8 @@ function generateJS() {
     done
   )"
 
+  $debug && echo -e "Macro replacements:$sed_script" >&2
+
   echo "(function() { // Start $file_name"
   sed -r "$sed_script" "$file_name.metajs" |
   while read line; do
@@ -40,6 +48,8 @@ function generateJS() {
 }
 
 generateJS gravity > gravity.js
+
+$debug || sed -ri 's#^.*//\s*debug\s*$##' gravity.js
 
 if ! ( which cssc && which uglifyjs )>/dev/null; then
   echo "
@@ -79,13 +89,14 @@ else
     && valuation="The package is o.k, with $sizeK." \
     || valuation="The package bigger than the limit, with $sizeK."
   echo "=> $valuation ($size of $((13*1024)) bytes)"
+  $debug && echo "-> debug mode may generate a bigger package then the normal."
   ( which espeak &&
     espeak -v en -s 150 "$valuation" &
   ) >/dev/null 2>&1
 
 fi
 
-mv gravity.js gravity.min.js # debug mode
+$debug && mv gravity.js gravity.min.js # non ugly code for browser debug
 
 ### Daemon #####################################################################
 
