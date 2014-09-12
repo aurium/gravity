@@ -28,7 +28,6 @@ for ( var id in planets ) {
     p.y = sin(p.a)*p.d + planets[p.p||'sun'].y;
     p.vx = p.x - oldx;
     p.vy = p.y - oldy;
-    //log( '1>', id, p.a, p.v, p.d, p.x )
   }
 }
 
