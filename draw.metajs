@@ -30,6 +30,10 @@ var mapZ = (map.height/biggerPlanetD)/2.2;
 
 var grd;
 
+// Nickname methods
+for (var method in ctx)
+  CanvasRenderingContext2D.prototype[method.replace(/(.)[a-z]+/g, '$1')] = ctx[method];
+
 // Clear all
 ctx.clearRect(0,0,w,h);
 ctxMap.clearRect(0,0,map.width,map.height);
@@ -38,15 +42,15 @@ ctxMap.clearRect(0,0,map.width,map.height);
 missiles.forEach(function(m) {
   ctx.fillStyle = 'rgb(255,'+Math.round((sin(ticCounter/2)+1)*127)+',0)';
   ctx.strokeStyle = 'rgb(255,'+Math.round((cos(ticCounter/2)+1)*127)+',0)';
-  ctx.beginPath();
+  ctx.bP();
   ctx.arc( z*m.x+vCX, z*m.y+vCY, z*(m.r-1), 0,7 );
   ctx.fill();
   ctx.lineWidth = 1.5*z;
   ctx.stroke();
   ctxMap.fillStyle = ctx.fillStyle;
-  ctxMap.beginPath();
+  ctxMap.bP();
   ctxMap.arc( mapZ*m.x+map.cx, mapZ*m.y+map.cy, mapZ*m.r*4, 0,7 );
-  ctxMap.closePath();
+  ctxMap.cP();
   ctxMap.fill();
 });
 
@@ -62,14 +66,14 @@ cannons.forEach(function(cannon){
     grd.addColorStop(1, '#D60');
   } else grd = '#D60';
   ctx.fillStyle = grd;
-  ctx.beginPath();
-  ctx.lineTo(             -20 *z, -10*z);
-  ctx.lineTo((cannon.build-20)*z*.6, -10*z);
-  ctx.lineTo((cannon.build-17)*z*.6,  -8*z);
-  ctx.lineTo((cannon.build-17)*z*.6,   8*z);
-  ctx.lineTo((cannon.build-20)*z*.6,  10*z);
-  ctx.lineTo(             -20 *z,  10*z);
-  ctx.closePath();
+  ctx.bP();
+  ctx.lT(             -20 *z, -10*z);
+  ctx.lT((cannon.build-20)*z*.6, -10*z);
+  ctx.lT((cannon.build-17)*z*.6,  -8*z);
+  ctx.lT((cannon.build-17)*z*.6,   8*z);
+  ctx.lT((cannon.build-20)*z*.6,  10*z);
+  ctx.lT(             -20 *z,  10*z);
+  ctx.cP();
   ctx.fill();
   if ( qualityLevel < 3 ) {
     grd = ctx.createLinearGradient(0, -5*z, 0, 5*z);
@@ -98,13 +102,13 @@ if ( qualityLevel < 3 ) {
   sunRayLength = sunRayZoom * sun.r * 2;
   ctx.fillStyle = '#FC0';
 }
-ctx.beginPath();
+ctx.bP();
 var timeDif = (now() - start)/16000;
 for (var i=timeDif; i<timeDif+7; i+=0.314*2) {
   ctx.arc( vCX, vCY, sunRayLength, i,i+0.314 );
-  ctx.lineTo(vCX, vCY);
+  ctx.lT(vCX, vCY);
 }
-ctx.closePath();
+ctx.cP();
 ctx.fill();
 
 // Draw Planets
@@ -119,16 +123,16 @@ for ( var id in planets ) {
     grd.addColorStop(0.48, 'rgba('+p.c[2]+','+(p==sun?0.6:0.3*(z>.5?z:.5))+')');
     grd.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = grd;
-    ctx.beginPath();
+    ctx.bP();
     ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r*(p==sun?3:2), 0,7 );
-    ctx.closePath();
+    ctx.cP();
     ctx.fill();
   }
   if ( qualityLevel == 2 ) {
     ctx.fillStyle = 'rgb('+p.c[1]+')';
-    ctx.beginPath();
+    ctx.bP();
     ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r*.99, 0,7 );
-    ctx.closePath();
+    ctx.cP();
     ctx.fill();
   }
   if ( qualityLevel < 3 ) {
@@ -141,9 +145,9 @@ for ( var id in planets ) {
   } else {
     ctx.fillStyle = 'rgb('+p.c[0]+')';
   }
-  ctx.beginPath();
+  ctx.bP();
   ctx.arc( z*p.x+vCX, z*p.y+vCY, z*p.r, 0,7 );
-  ctx.closePath();
+  ctx.cP();
   ctx.fill();
   // Planet on the map
   var owner = ownerOfPlanet(p);
@@ -153,9 +157,9 @@ for ( var id in planets ) {
   else if (owner == 1) ownerColor = 'rgb(240,100,50)';
   else ownerColor = 'rgb(255,0,255)';
   ctxMap.fillStyle = p==sun? '#FF7' : ownerColor;
-  ctxMap.beginPath();
+  ctxMap.bP();
   ctxMap.arc( mapZ*p.x+map.cx, mapZ*p.y+map.cy, mapZ*p.r, 0,7 ); //(p==sun?3:0.6)
-  ctxMap.closePath();
+  ctxMap.cP();
   ctxMap.fill();
 }
 
@@ -163,17 +167,17 @@ for ( var id in planets ) {
 boids.forEach(function(b){
   ctx.strokeStyle = 'rgba('+b.color[1]+',0.6)';
   // Velocity tail
-  ctx.beginPath();
-  ctx.moveTo( z*b.x+vCX, z*b.y+vCY );
-  ctx.lineTo( z*b.vx*-10+z*b.x+vCX, z*b.vy*-10+z*b.y+vCY );
-  ctx.closePath();
+  ctx.bP();
+  ctx.mT( z*b.x+vCX, z*b.y+vCY );
+  ctx.lT( z*b.vx*-10+z*b.x+vCX, z*b.vy*-10+z*b.y+vCY );
+  ctx.cP();
   ctx.stroke();
   // Boid body
-  ctx.beginPath();
+  ctx.bP();
   ctx.strokeStyle = 'rgb('+b.color[0]+')';
   ctx.fillStyle = 'rgb('+b.color[1]+')';
   ctx.arc( z*b.x+vCX, z*b.y+vCY, z*b.r, 0,7 );
-  ctx.closePath();
+  ctx.cP();
   ctx.fill();
   ctx.lineWidth = 0.8*z;
   ctx.stroke();
@@ -182,20 +186,20 @@ boids.forEach(function(b){
 // Draw Ship
 if (shipAlive) {
   ctxMap.fillStyle = '#6BF';
-  ctxMap.beginPath();
+  ctxMap.bP();
   ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 0.9, 0,7 );
-  ctxMap.closePath();
+  ctxMap.cP();
   ctxMap.fill();
   ctxMap.strokeStyle = 'rgba(0,200,200,0.5)';
   ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 10,
               ship.rotate, ship.rotate+turn3 );
-  ctxMap.closePath();
+  ctxMap.cP();
   ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 10,
               ship.rotate+turn3, ship.rotate+turn3*2 );
-  ctxMap.closePath();
+  ctxMap.cP();
   ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 10,
               ship.rotate+turn3*2, ship.rotate+turn3*3 );
-  ctxMap.closePath();
+  ctxMap.cP();
   ctxMap.stroke();
   ctx.save();
   ctx.translate( z*ship.x+vCX, z*ship.y+vCY );
@@ -204,7 +208,7 @@ if (shipAlive) {
   ctx.scale(scale,scale);
   /*
   ctx.strokeStyle = 'rgba(255,255,255,0.2)'; // debug
-  ctx.beginPath(); // debug
+  ctx.bP(); // debug
   ctx.arc( 0, 0, 20, 0,7 ); // debug
   ctx.stroke(); // debug
   */
@@ -213,10 +217,10 @@ if (shipAlive) {
     grd.addColorStop(0, '#FF0');
     grd.addColorStop(1, '#F00');
     ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.moveTo(-7.5,0);
-    ctx.bezierCurveTo( -11,-7.5, -13,-.5, -20+rand(2),0 );
-    ctx.bezierCurveTo( -13,1,  -11,7.5, -7.5,0 );
+    ctx.bP();
+    ctx.mT(-7.5,0);
+    ctx.bCT( -11,-7.5, -13,-.5, -20+rand(2),0 );
+    ctx.bCT( -13,1,  -11,7.5, -7.5,0 );
     ctx.fill();
   }
   if (usrInput.btR) { // Fire Clockwise
@@ -224,10 +228,10 @@ if (shipAlive) {
     grd.addColorStop(0, '#FF0');
     grd.addColorStop(1, '#F00');
     ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.moveTo(7.5,-4);
-    ctx.bezierCurveTo( 10,-6.5, 8,-6.5, 7.5,-11+rand(2) );
-    ctx.bezierCurveTo( 7,-6.5,  5,-6.5, 7.5,-4 );
+    ctx.bP();
+    ctx.mT(7.5,-4);
+    ctx.bCT( 10,-6.5, 8,-6.5, 7.5,-11+rand(2) );
+    ctx.bCT( 7,-6.5,  5,-6.5, 7.5,-4 );
     ctx.fill();
   }
   if (usrInput.btL) { // Fire Anti-Clockwise
@@ -235,18 +239,18 @@ if (shipAlive) {
     grd.addColorStop(0, '#FF0');
     grd.addColorStop(1, '#F00');
     ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.moveTo(7.5,4);
-    ctx.bezierCurveTo( 10,6.5, 8,6.5, 7.5,11+rand(2) );
-    ctx.bezierCurveTo( 7,6.5,  5,6.5, 7.5,4 );
+    ctx.bP();
+    ctx.mT(7.5,4);
+    ctx.bCT( 10,6.5, 8,6.5, 7.5,11+rand(2) );
+    ctx.bCT( 7,6.5,  5,6.5, 7.5,4 );
     ctx.fill();
   }
   // Wings
   ctx.fillStyle = '#599';
-  ctx.beginPath();
-  ctx.moveTo(-2.5,-9.5);
-  ctx.bezierCurveTo( 7.5,-12.5, 7.5,12.5, -2.5,9.5 );
-  ctx.closePath();
+  ctx.bP();
+  ctx.mT(-2.5,-9.5);
+  ctx.bCT( 7.5,-12.5, 7.5,12.5, -2.5,9.5 );
+  ctx.cP();
   ctx.fill();
   // Body
   if ( qualityLevel < 3 ) {
@@ -257,21 +261,21 @@ if (shipAlive) {
   } else {
     ctx.fillStyle = '#ACC';
   }
-  ctx.beginPath();
-  ctx.moveTo(-9,-4.5);
-  ctx.bezierCurveTo( 0,-10, 9.5,-4, 10,0 );
-  ctx.bezierCurveTo( 10,4,  0,10, -9,4.5 );
-  ctx.lineTo(-8, 0);
+  ctx.bP();
+  ctx.mT(-9,-4.5);
+  ctx.bCT( 0,-10, 9.5,-4, 10,0 );
+  ctx.bCT( 10,4,  0,10, -9,4.5 );
+  ctx.lT(-8, 0);
   ctx.fill();
   // Staff Boids
   ctx.lineWidth = 1/(z+1/2);
   ctx.strokeStyle = '#181';
   var drawCrew = function(pos) {
     var t = ship.crew;
-    ctx.beginPath();
+    ctx.bP();
     ctx.fillStyle = t[pos] ? 'rgb('+t[pos].color[1]+')' : '#888';
     ctx.arc( -4+(pos*4),0, 2, 0,7 );
-    ctx.closePath();
+    ctx.cP();
     ctx.fill(); ctx.stroke();
   }
   drawCrew(0);
@@ -283,7 +287,7 @@ if (shipAlive) {
 // Draw explosions
 explosions.forEach(function(e) {
   ctx.fillStyle = 'rgba(255,255,255,'+(20-e.t)/20+')';
-  ctx.beginPath();
+  ctx.bP();
   ctx.arc( z*e.x+vCX, z*e.y+vCY, z*(e.r+e.t*e.inc), 0,7 );
   ctx.fill();
 });
