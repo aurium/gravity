@@ -66,6 +66,7 @@ var ctx = c.getContext('2d'),
     showStars = true,
     allowSound = true,
     pause = true,
+    pressDialogBt = sin, // initialize with a harmless function
     secs = function(num) { return num*1000 },
     //macro orbDist1: 500
     //macro orbDist2: 900
@@ -578,7 +579,7 @@ var fireWeapon = function () {
   }
 };
 
-var introStep = 1;
+var introStep = 0;
 window.introNext = function () {
   window['introTxt'+introStep++].style.display = 'none';
   if (introStep<=3) window['introTxt'+introStep].style.display = 'block';
@@ -588,7 +589,6 @@ window.introNext = function () {
     pause = false;
   }
 };
-var pressDialogBt = window.introNext;
 
 d.onkeydown = function (ev) {
   switch (ev.keyCode) {

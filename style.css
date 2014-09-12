@@ -56,8 +56,7 @@ body {
 .touchable #mapBox {
   width: 350px;
   height: 300px;
-  background: rgba(0,40,70,0.2);
-  box-shadow: inset 1px -1px 20px -1px rgba(0,200,255,0.1);
+  background: rgba(0,30,50,0.8);
 }
 
 #map {
@@ -292,10 +291,15 @@ b {
 }
 
 #intro div {
+  display: none;
   font-size: 90%;
 }
 
-#introTxt2, #introTxt3 {
+#intro #introTxt0 {
+  display: block;
+}
+
+#introNextBt {
   display: none;
 }
 
@@ -334,15 +338,20 @@ b {
   padding: 0.2em 0;
 }
 
+#playerWin {
+  background: #ACE;
+  box-shadow: inset 0 0 40px #579, 0 0 40px 10px rgba(255,255,255,0.6);
+}
+
 #playerWin.breakingNews {
   font-size: 90%;
   width: 440px;
   height: 250px;
 }
 .pix20 #playerWin.breakingNews {
-  width: 660px;
-  height: 325px;
-  margin: -200px 0 0 -300px;
+  width: 640px;
+  height: 340px;
+  margin: -200px 0 0 -350px;
   font-size: 125%;
 }
 
