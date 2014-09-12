@@ -56,7 +56,6 @@ missiles.forEach(function(m) {
 
 // Draw Cannons
 cannons.forEach(function(cannon){
-  var pR = cannon.planet.r;
   ctx.save();
   ctx.translate( z*cannon.x+vCX, z*cannon.y+vCY );
   ctx.rotate(cannon.rotate);
