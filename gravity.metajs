@@ -1,6 +1,6 @@
 "use strict";
 
-try {
+try { // debug
 
 var log = function() { // debug
   var args = []; // debug
@@ -247,10 +247,10 @@ var coord2index = function(x, y) {
 
 var setPxLight = function(imgData, x,y, alpha) {
   var i = coord2index(x,y);
-  imgData[i*4+0] = 255*alpha;
-  imgData[i*4+1] = 400*alpha;
-  imgData[i*4+2] = 600*alpha;
-  imgData[i*4+3] = alpha*255;
+  imgData[i*4+0] = 255*alpha; // R
+  imgData[i*4+1] = 400*alpha; // G
+  imgData[i*4+2] = 600*alpha; // B
+  imgData[i*4+3] = alpha*255; // A
 };
 
 var plotStar = function(imgData, x,y, alpha) {
@@ -648,6 +648,10 @@ d.onkeydown = function (ev) {
     case 37: pressBt('btL', true); break;
     case 39: pressBt('btR', true); break;
     case 32: fireWeapon(); break;
+    case 80: pause = !pause;
+      if (pause) msgToUsr('Paused');
+      else msgToUsr('Playing');
+      break;
   }
 };
 
@@ -677,7 +681,7 @@ ctrlQ1.click();
 ctrlM.checked = true;
 ctrlS.checked = true;
 
-} catch (e) {
-  alert(e)
-  throw e;
-}
+} catch (e) { // debug
+  alert(e) // debug
+  throw e; // debug
+} // debug
