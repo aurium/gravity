@@ -11,6 +11,7 @@ html {
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
   background: #000;
   overflow: hidden;
 }
@@ -116,6 +117,12 @@ body {
   opacity: 0;
   transition: 12s;
 }
+.pix15 #msgBox {
+  font-size: 2.5vw;
+}
+.pix20 #msgBox {
+  font-size: 2.5vw;
+}
 #msgBox.visible {
   opacity: 1;
   transition: 0s;
@@ -138,7 +145,7 @@ b {
 }
 
 #btU, #btL, #btR {
-  font-size: 60px;
+  font-size: 50px;
   color: rgba(255,255,255,0.3);
   background: rgba(0,0,0,0.3);
   box-shadow: inset 0 0 90px rgba(255,255,255,0.3);
@@ -154,19 +161,19 @@ b {
 #btU {
   left: 25%;
   right: 25%;
-  padding: 30px 0 40px 0;
+  padding: 20px 0 30px 0;
   border-radius: 95px 95px 0 0;
 }
 #btL {
   left: -40px;
   right: 77%;
-  padding: 70px 0 40px 0;
+  padding: 60px 0 30px 0;
   border-radius: 0 150px 0 0;
 }
 #btR {
   right: -40px;
   left: 77%;
-  padding: 70px 0 40px 0;
+  padding: 60px 0 30px 0;
   border-radius: 150px 0 0 0;
 }
 #btU:before { content: "⇑" }
@@ -186,10 +193,8 @@ b {
   opacity: 1;
 }
 .touchable #btW {
-  box-shadow: inset 0 0 30px rgba(55,155,255,0.3);
-  border-radius: 40px;
-  padding: 50px;
-  bottom: 220px;
+  padding: 20px;
+  bottom: 200px;
 }
 #btW.empty {
   background: rgba(0,160,255,1);
@@ -249,12 +254,12 @@ b {
   opacity: 0.8;
 }
 .pix20 .dialog {
-  width: 800px;
-  height: 400px;
-  padding: 20px 40px;
-  margin: -220px 0 0 -440px;
-  font-size: 200%;
-  box-shadow: inset 0 0 80px #666, 0 0 80px 20px rgba(255,255,255,0.6);
+  width: 600px;
+  height: 300px;
+  padding: 15px 30px;
+  margin: -180px 0 0 -330px;
+  font-size: 150%;
+  box-shadow: inset 0 0 60px #666, 0 0 60px 15px rgba(255,255,255,0.6);
 }
 
 .dialog h1 {
@@ -321,8 +326,12 @@ b {
 }
 
 #ctrlBox label {
-  display: inline-block;
-  padding: 8px 0;
+  display: block;
+  padding: 0.5em 0;
+}
+
+#ctrlBox dir label {
+  padding: 0.2em 0;
 }
 
 #playerWin.breakingNews {
@@ -331,11 +340,10 @@ b {
   height: 250px;
 }
 .pix20 #playerWin.breakingNews {
-  width: 860px;
-  height: 430px;
-  padding: 20px 40px;
-  margin: -240px 0 0 -450px;
-  font-size: 160%;
+  width: 660px;
+  height: 325px;
+  margin: -200px 0 0 -300px;
+  font-size: 125%;
 }
 
 #playerWin h3 {

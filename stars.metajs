@@ -1,0 +1,76 @@
+var julia = function(x, y) {
+  var newX, newY, c=.52;
+  //x /= w*.6; // star field based on browser width
+  //y /= w*.6; // star field based on browser width
+  x /= bgZ; // star field fixed width
+  y /= bgZ; // star field fixed width
+  for (var i = 1; i <= 255; i++) {
+    var x2 = x*x, y2 = y*y;
+    if(x2 + y2 > 4) break;
+    newX = x2 - y2 + -c;
+    newY = 2*x*y + c;
+    x = newX;
+    y = newY;
+  }
+  return i;
+};
+
+var pseudoRandPx = function(x, y, probability) {
+  return (x*y+start) % ((((x+1e4)/(y+1e3))%77)+13) < (probability||1);
+};
+
+var coord2index = function(x, y) {
+  //var index = w*bgZFactor*(y+h*(bgZFactor/2)) + x+w*(bgZFactor/2); // star field based on browser width
+  var index = bgW*(y+bgH/2) + x+bgW/2; // star field fixed width
+  if (index < 0) index = 0;
+  return index;
+};
+
+var setPxLight = function(imgData, x,y, alpha) {
+  var i = coord2index(x,y);
+  imgData[i*4+0] = 255*alpha; // R
+  imgData[i*4+1] = 400*alpha; // G
+  imgData[i*4+2] = 600*alpha; // B
+  imgData[i*4+3] = alpha*255; // A
+};
+
+var plotStar = function(imgData, x,y, alpha) {
+  setPxLight(imgData, x,y, alpha);
+  setPxLight(imgData, x,y+1, alpha*.6);
+  setPxLight(imgData, x+1,y, alpha*.6);
+  setPxLight(imgData, x+1,y+1, alpha*.6);
+  if (alpha>.5) {
+    setPxLight(imgData, x-1, y+1, alpha/2);
+    setPxLight(imgData, x+2, y,   alpha/2);
+    setPxLight(imgData, x,   y-1, alpha/2);
+    setPxLight(imgData, x+1, y+2, alpha/2);
+  }
+};
+
+  // Create the image storage to the stars
+  //var imgDataObj = ctxBg.createImageData(w*bgZFactor,h*bgZFactor); // star field based on browser width
+  var imgDataObj = ctxBg.createImageData(bgW,bgH); // star field fixed width
+  var imgData = imgDataObj.data;
+  //for (var x=-w*(bgZFactor/2); x<w*(bgZFactor/2); x++) { // star field based on browser width
+    //for (var y=-h*(bgZFactor/2); y<h*(bgZFactor/2); y++) {
+  for (var x=-bgW; x<bgW; x++) { // star field fixed width
+    for (var y=-bgH; y<bgH; y++) {
+      var alpha = julia(x,y)/255;
+      if (alpha>.6 && pseudoRandPx(x,y,1.5)) plotStar(imgData, x,y, alpha*.4);
+      if (alpha>.4 && pseudoRandPx(x,y,0.7)) plotStar(imgData, x,y, alpha*.5);
+      if (pseudoRandPx(x,y,0.2)) plotStar(imgData, x,y, alpha);
+      var i = coord2index(x,y);
+      //imgData[i*4+1] = 255; // G
+      //imgData[i*4+3] = alpha*255; // A
+    }
+  }
+  // Set bg attributes
+  //bg.style.width = (bg.width = Math.round(w*bgZFactor))+'px'; // star field based on browser width
+  //bg.style.height = (bg.height = Math.round(h*bgZFactor))+'px';
+  bg.style.width = (bg.width = bgW)+'px'; // star field fixed width
+  bg.style.height = (bg.height = bgH)+'px';
+  //bg.style.left = -(bgW-w)/2 +'px';
+  //bg.style.top = -(bgH-h)/2 +'px';
+  ctxBg.clearRect(0,0,bgW,bgH);
+  ctxBg.putImageData(imgDataObj, 0, 0);
+

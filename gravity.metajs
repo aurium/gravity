@@ -63,6 +63,7 @@ var ctx = c.getContext('2d'),
     b = d.body,
     touchable = false,
     qualityLevel = 1,
+    showStars = true,
     allowSound = true,
     pause = true,
     secs = function(num) { return num*1000 },
@@ -162,7 +163,7 @@ var ctx = c.getContext('2d'),
     start = now();
 
 viewport.setAttribute('content',
-  'width=device-width, user-scalable=no, initial-scale=' + (1/pixelRatio)
+  'width=device-width, user-scalable=no, initial-scale=' + ((1/pixelRatio)+1)/2
 );
 if ( pixelRatio >= 2 ) b.className += ' pix20';
 else if ( pixelRatio > 1 ) b.className += ' pix15';
@@ -219,52 +220,11 @@ ctrlClose.onclick = function() {
   ctrlBox.style.display = 'none';
 };
 
-var julia = function(x, y) {
-  var newX, newY, c=.52;
-  x /= w*.6;
-  y /= w*.6;
-  for (var i = 1; i <= 255; i++) {
-    var x2 = x*x, y2 = y*y;
-    if(x2 + y2 > 4) break;
-    newX = x2 - y2 + -c;
-    newY = 2*x*y + c;
-    x = newX;
-    y = newY;
-  }
-  return i;
-};
-
-var pseudoRandPx = function(x, y, probability) {
-  return (x*y+start) % ((((x+1e4)/(y+1e3))%77)+13) < (probability||1);
-};
-
-var bgZFactor = 1.8;
-var coord2index = function(x, y) {
-  var index = w*bgZFactor*(y+h*(bgZFactor/2)) + x+w*(bgZFactor/2);
-  if (index < 0) index = 0;
-  return index;
-};
-
-var setPxLight = function(imgData, x,y, alpha) {
-  var i = coord2index(x,y);
-  imgData[i*4+0] = 255*alpha; // R
-  imgData[i*4+1] = 400*alpha; // G
-  imgData[i*4+2] = 600*alpha; // B
-  imgData[i*4+3] = alpha*255; // A
-};
-
-var plotStar = function(imgData, x,y, alpha) {
-  setPxLight(imgData, x,y, alpha);
-  setPxLight(imgData, x,y+1, alpha*.6);
-  setPxLight(imgData, x+1,y, alpha*.6);
-  setPxLight(imgData, x+1,y+1, alpha*.6);
-  if (alpha>.5) {
-    setPxLight(imgData, x-1, y+1, alpha/2);
-    setPxLight(imgData, x+2, y,   alpha/2);
-    setPxLight(imgData, x,   y-1, alpha/2);
-    setPxLight(imgData, x+1, y+2, alpha/2);
-  }
-};
+//var bgZFactor = 1.8;         // star field based on browser width
+var bgZ = 900;                 // star field fixed width
+var bgW = Math.round(bgZ*2.9); // star field fixed width
+var bgH = bgZ*2;               // star field fixed width
+//include stars
 
 (window.onresize = function() {
   if (vCX==null) { // set initial view center near to the home planet.
@@ -277,24 +237,6 @@ var plotStar = function(imgData, x,y, alpha) {
   // Set the same map properties
   map.cx = (map.width = mapBox.clientWidth - 10) / 2;
   map.cy = (map.height = mapBox.clientHeight - 10) / 2;
-  // Create the image storage to the stars
-  var imgDataObj = ctxBg.createImageData(w*bgZFactor,h*bgZFactor);
-  var imgData = imgDataObj.data;
-  for (var x=-w*(bgZFactor/2); x<w*(bgZFactor/2); x++) {
-    for (var y=-h*(bgZFactor/2); y<h*(bgZFactor/2); y++) {
-      var alpha = julia(x,y)/255;
-      if (alpha>.6 && pseudoRandPx(x,y,1.5)) plotStar(imgData, x,y, alpha*.4);
-      if (alpha>.4 && pseudoRandPx(x,y,0.7)) plotStar(imgData, x,y, alpha*.5);
-      if (pseudoRandPx(x,y,0.2)) plotStar(imgData, x,y, alpha);
-    }
-  }
-  // Set bg attributes
-  bg.style.width = (bg.width = Math.round(w*bgZFactor))+'px';
-  bg.style.height = (bg.height = Math.round(h*bgZFactor))+'px';
-  bg.style.left = -(bg.width-w)/2 +'px';
-  bg.style.top = -(bg.height-h)/2 +'px';
-  ctxBg.clearRect(0,0,bg.width,bg.height);
-  ctxBg.putImageData(imgDataObj, 0, 0);
 })();
 
 var boidsOnPlanet = function(p) {
@@ -594,9 +536,15 @@ var youWin = function() {
   };
 };
 
-var ticCounter = 0, framesPerSec = 30, lastFrame = now();
+var ticCounter = 0, framesPerSec = 30, lastFrame = now(), frameRate, lastFrameRate;
 setInterval(function() {
-  //msgToUsr( Math.round( 1000/(now()-lastFrame) ) );
+  frameRate = Math.round( 1000/(now()-lastFrame) );
+  if (frameRate<20 && lastFrameRate<20 && ticCounter>framesPerSec*10 &&
+      (qualityLevel<3 || showStars) && shipAlive && !pause) msgToUsr(
+    'Your framerate is too low!<br>' +
+    'You may try tho disble some graphic features at the config dialog.'
+  );
+  lastFrameRate = frameRate;
   lastFrame = now();
   //include objects-update
   //include draw
@@ -605,7 +553,7 @@ setInterval(function() {
 d.onclick = function (ev) {
   if (d.fullScreenEnabled) b.requestFullscreen();
   if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
-  if (d.webkitFullscreenEnabled) b.webkitRequestFullScreen();
+  if (d.webkitFullscreenEnabled) d.documentElement.webkitRequestFullScreen();
 };
 
 var pressBt = function(bt, on) {
@@ -675,9 +623,14 @@ btU.addEventListener("touchend", function(){ pressBt('btU', false) });
 ctrlQ1.onclick = function(){ qualityLevel = 1 };
 ctrlQ2.onclick = function(){ qualityLevel = 2 };
 ctrlQ3.onclick = function(){ qualityLevel = 3 };
+toggleStars.onclick = function(){
+  showStars = !showStars;
+  bg.style.display = showStars ? 'block' : 'none';
+};
 ctrlM.onclick  = function(){ this.checked ? music.play() : music.pause() };
 ctrlS.onclick  = function(){ allowSound = this.checked };
 ctrlQ1.click();
+toggleStars.checked = true;
 ctrlM.checked = true;
 ctrlS.checked = true;
 
