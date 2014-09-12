@@ -60,9 +60,6 @@ setTimeout(function() {
       if (alpha>.6 && pseudoRandPx(x,y,1.5)) plotStar(imgData, x,y, alpha*.4);
       if (alpha>.4 && pseudoRandPx(x,y,0.7)) plotStar(imgData, x,y, alpha*.5);
       if (pseudoRandPx(x,y,0.2)) plotStar(imgData, x,y, alpha);
-      var i = coord2index(x,y);
-      //imgData[i*4+1] = 255; // G
-      //imgData[i*4+3] = alpha*255; // A
     }
   }
   // Set bg attributes

@@ -15,16 +15,13 @@ var abs = Math.abs,
     cos = Math.cos,
     pi = Math.PI,
     completeRad = 2 * pi, // complete revolution
-    deg90 = pi/2,
-    turn3 = completeRad/3;
+    turn3 = completeRad/3,
+    biteLimit = function(val) {
+      return val>255 ? 255 : ( val<0 ? 0 : val );
+    },
+    rand = function(num) { return (Math.random()-0.5) * (num||1) },
+    music, playAudio;
 
-var biteLimit = function(val) {
-  return val>255 ? 255 : ( val<0 ? 0 : val );
-}
-
-var rand = function(num) { return (Math.random()-0.5) * (num||1) };
-
-var music, playAudio;
 // include audio
 
 var randColor = function(mr,vr,mg,vg,mb,vb) {
@@ -60,6 +57,7 @@ var ctx = c.getContext('2d'),
     starX=0, starY=0,
     ctxMap = map.getContext('2d'),
     d = document,
+    de = d.documentElement,
     b = d.body,
     touchable = false,
     qualityLevel = 1,
@@ -67,6 +65,9 @@ var ctx = c.getContext('2d'),
     allowSound = true,
     pause = true,
     pressDialogBt = sin, // initialize with a harmless function
+    encEntryUrl = encodeURIComponent('http://js13kgames.com/entries/gravity'),
+    twittHref = 'https://twitter.com/intent/tweet?original_referer='+ encEntryUrl +
+                '&url='+ encEntryUrl +'&text=',
     secs = function(num) { return num*1000 },
     //macro orbDist1: 500
     //macro orbDist2: 900
@@ -188,6 +189,7 @@ var shipDamage = function(points, dieMsg, aliveFunc) {
 };
 
 var shipDie = function(txt, showNow) {
+  if (!shipAlive && !showNow) return;
   playAudio('nearExplosion');
   shipAlive = false;
   if (!showNow) return setTimeout( function(){ shipDie(txt,true) }, 500 );
@@ -196,16 +198,12 @@ var shipDie = function(txt, showNow) {
   zoom = (h/biggerPlanetD)/2;
   if (!txt) txt = 'You die.'
   var timeStr = time2str( now() - start );
-  var encUrl = encodeURIComponent('http://js13kgames.com/entries/gravity');
-  var twittHref = 'https://twitter.com/intent/tweet?original_referer='+ encUrl +
-    '&text=' + encodeURIComponent(
+  deadMsg.innerHTML += txt + '<p/> Notify your allies:' +
+    ' <a href="'+ twittHref + encodeURIComponent(
       'Check out Gravity, at @js13kGames compo! '+
       'I died in '+timeStr+' trying to purge the reddish threat.'
-    ) + '&url='+encUrl
-  deadMsg.innerHTML += txt + '<p/> Notify your allies: ' +
-    '<a href="'+twittHref+'" target="_blank">Twitt</a>, ' +
-    '<a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fjs13kgames.com%2Fentries%2Fgravity" target="_blank" id="winFB">FB Share</a>. ' +
-    '<a class="bt" onclick="document.location.reload()">Restart</a>';
+    )+'" target="_blank">Twitt</a>, ' + winFB.outerHTML +
+    ' <a class="bt" onclick="document.location.reload()">Restart</a>';
   pressDialogBt = function(){ document.location.reload() };
   deadMsg.style.display = 'block';
 };
@@ -233,8 +231,8 @@ var bgH = bgZ*2;               // star field fixed width
     vCY = planets.p2a.d/2;
   }
   // Read the screen size, set canvas size equal to screen, and set its center.
-  scrCX = (c.width = w = d.documentElement.clientWidth) / 2;
-  scrCY = (c.height = h = d.documentElement.clientHeight) / 2;
+  scrCX = (c.width = w = de.clientWidth) / 2;
+  scrCY = (c.height = h = de.clientHeight) / 2;
   // Set the same map properties
   map.cx = (map.width = mapBox.clientWidth - 10) / 2;
   map.cy = (map.height = mapBox.clientHeight - 10) / 2;
@@ -524,12 +522,10 @@ var youWin = function() {
   var timeStr = time2str( now() - start );
   finishTime.innerHTML = timeStr;
   playerWin.style.display = 'block';
-  var encUrl = encodeURIComponent('http://js13kgames.com/entries/gravity');
-  winTwitt.href = 'https://twitter.com/intent/tweet?original_referer='+ encUrl +
-    '&text=' + encodeURIComponent(
+  winTwitt.href = twittHref + encodeURIComponent(
       'Check out Gravity, at @js13kGames compo! '+
       'I purged the reddish threat from my star system in '+timeStr+'.'
-    ) + '&url='+encUrl
+    );
   winFB.onclick =
   winTwitt.onclick =
   winBMGoogle.onclick = function() {
@@ -554,7 +550,7 @@ setInterval(function() {
 d.onclick = function (ev) {
   if (d.fullScreenEnabled) b.requestFullscreen();
   if (d.mozFullScreenEnabled) b.mozRequestFullScreen();
-  if (d.webkitFullscreenEnabled) d.documentElement.webkitRequestFullScreen();
+  if (d.webkitFullscreenEnabled) de.webkitRequestFullScreen();
 };
 
 var pressBt = function(bt, on) {
@@ -612,13 +608,14 @@ d.onkeyup = function (ev) {
   }
 };
 
-btL.addEventListener("touchstart", function(){ pressBt('btL', true) });
-btR.addEventListener("touchstart", function(){ pressBt('btR', true) });
-btU.addEventListener("touchstart", function(){ pressBt('btU', true) });
+var touch = function(bt) {
+  window[bt].addEventListener("touchstart", function(){ pressBt(bt, true) });
+  window[bt].addEventListener("touchend", function(){ pressBt(bt, false) });
+};
+touch('btL');
+touch('btR');
+touch('btU');
 btW.addEventListener("touchstart", function(){ fireWeapon() });
-btL.addEventListener("touchend", function(){ pressBt('btL', false) });
-btR.addEventListener("touchend", function(){ pressBt('btR', false) });
-btU.addEventListener("touchend", function(){ pressBt('btU', false) });
 
 ctrlQ1.onclick = function(){ qualityLevel = 1 };
 ctrlQ2.onclick = function(){ qualityLevel = 2 };
