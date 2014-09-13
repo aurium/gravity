@@ -53,6 +53,8 @@ Press `P` to toggle pause;
 
 The small button at the right opens the configure dialog, where you can toggle audio and graphics quality.
 
+See some gameplay videos at http://ripe.ufba.br/aurium/gravity
+
 Technical Information
 ======================
 
