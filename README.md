@@ -2,6 +2,7 @@ Gravity — A HTML5 conquer game
 ==============================
 
 ![Gravity screenshot](https://cloud.githubusercontent.com/assets/30254/4260703/c0a9bb06-3b49-11e4-9d14-74017774479f.png)
+
 Your objective is to conquer all planets on the star system.
 
 ## History
