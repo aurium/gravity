@@ -80,6 +80,17 @@ if ! (
 
 else
 
+  #b='\\'
+  #sed -ri "
+  #  s/$b/$b$b/g;
+  #  s/'/$b'/g;
+  #  s/function\(/',\n'/g;
+  #  s/^/eval(['/;
+  #  s/$/'].join('function('))/
+  #" gravity.min.js
+
+  #sed -ri 's/function/\nfunction/g' gravity.min.js
+
   test -e $zip && rm $zip
   zip $zip gravity.min.js index.html style.min.css
 
@@ -87,7 +98,7 @@ else
   sizeK=$( ls -lh $zip | sed -r 's/.* ([0-9,.]+K) .*/\1/' )
   test $size -lt $((13*1024)) \
     && valuation="The package is o.k, with $sizeK." \
-    || valuation="The package bigger than the limit, with $sizeK."
+    || valuation="The package is bigger than the limit, with $sizeK."
   echo "=> $valuation ($size of $((13*1024)) bytes)"
   $debug && echo "-> debug mode may generate a bigger package then the normal."
   ( which espeak &&
