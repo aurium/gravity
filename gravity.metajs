@@ -577,6 +577,7 @@ var fireWeapon = function () {
 
 var introStep = 0;
 window.introNext = function () {
+  if(introStep>3) return;
   window['introTxt'+introStep++].style.display = 'none';
   if (introStep<=3) window['introTxt'+introStep].style.display = 'block';
   if (introStep==3) introNextBt.innerHTML = 'Close';

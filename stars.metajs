@@ -47,7 +47,7 @@ var plotStar = function(imgData, x,y, alpha) {
   }
 };
 
-setTimeout(function() {
+window.onload = function() {
   // Create the image storage to the stars
   //var imgDataObj = ctxBg.createImageData(w*bgZFactor,h*bgZFactor); // star field based on browser width
   var imgDataObj = ctxBg.createImageData(bgW,bgH); // star field fixed width
@@ -76,4 +76,4 @@ setTimeout(function() {
     pressDialogBt = window.introNext;
     introNextBt.style.display = 'inline-block';
   }, secs(2));
-}, 10);
+};

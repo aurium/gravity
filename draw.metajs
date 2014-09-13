@@ -186,20 +186,19 @@ boids.forEach(function(b){
 
 // Draw Ship
 if (shipAlive) {
-  ctxMap.fillStyle = '#6BF';
-  ctxMap.bP();
-  ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 0.9, 0,7 );
-  ctxMap.cP();
-  ctxMap.fill();
   ctxMap.strokeStyle = 'rgba(0,200,200,0.5)';
-  ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 10,
-              ship.rotate, ship.rotate+turn3 );
-  ctxMap.cP();
-  ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 10,
-              ship.rotate+turn3, ship.rotate+turn3*2 );
-  ctxMap.cP();
+  ctx.bP();
+  ctxMap.mT( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy );
+  ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 2, ship.rotate,ship.rotate+completeRad );
+  ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 9, ship.rotate,ship.rotate+completeRad );
+  /*ctxMap.mT( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy );
   ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 10,
               ship.rotate+turn3*2, ship.rotate+turn3*3 );
+  ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 10,
+              ship.rotate+turn3, ship.rotate+turn3*2 );
+  ctxMap.arc( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy, 10,
+              ship.rotate, ship.rotate+turn3 );
+  ctxMap.lT( mapZ*ship.x+map.cx, mapZ*ship.y+map.cy );*/
   ctxMap.cP();
   ctxMap.stroke();
   ctx.save();
