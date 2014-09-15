@@ -22,7 +22,7 @@ function generateJS() {
     egrep "$macro_re" "$file_name.metajs" |
     while read macro_def; do
       macro_name="$( echo "$macro_def" | sed -r "s#$macro_re#\1#" )"
-      macro_expr="$( echo "$macro_def" | sed -r "s#$macro_re#\2#; s#@([1-9])#\\\1#g" )"
+      macro_expr="$( echo "$macro_def" | sed -r "s#$macro_re#\2#; s#@([1-9])#\\\\\1#g" )"
       if ( echo "$macro_def" | grep -q '@' ); then
         echo "s#$macro_name\(([^),]+),?([^),]+)?\)#$macro_expr#g;"
       else
