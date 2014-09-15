@@ -86,6 +86,10 @@ Open the `index.html` on your browser.
 You don't need to open the zip file.
 That is only for the js13k submission.
 
+## Technical articles about the game:
+
+* [Seeking for beauty and features in a 13k web game](http://softwarelivre.org/aurium/blog/seeking-for-beauty-and-features-in-a-13k-web-game)
+
 ## Screencasting
 
 ```bash
