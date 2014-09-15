@@ -34,7 +34,7 @@ function generateJS() {
   $debug && echo -e "Macro replacements:$sed_script" >&2
 
   echo "(function() { // Start $file_name"
-  sed -r "$sed_script" "$file_name.metajs" |
+  sed -r "$sed_script; s#$ws*//$ws*macro$ws.*##g" "$file_name.metajs" |
   while read line; do
     inc_file="$( echo $line | egrep "$inc_re" | sed -r "s#$inc_re#\1#" )"
     test -n "$inc_file" && echo ">> Including $inc_file" >&2
