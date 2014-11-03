@@ -262,7 +262,7 @@ missiles.forEach(function(m) {
             else msgToUsr('',
               "OMG! You killed Kenny. You bastard!", '',
               "FUUUUU!!! Reddish are shoting us!", '',
-              "Tel my wife... I... love... guacamole.", ''
+              "Tell my wife... I... love... guacamole.", ''
             );
           } else if ( deadCounter == 0 ) { // no one killed
             if (m.o==0) msgToUsr( "",
